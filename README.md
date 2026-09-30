@@ -40,6 +40,25 @@ premia el esfuerzo con accesorios para su mascota.
 Cada rutina tiene **3 pasos**. Por ejemplo, atarse las agujetas: *cruzar las agujetas → hacer las
 orejitas de conejo → apretar el nudo*.
 
+## 📱 Así se ve
+
+<table>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/1-inicio.png" alt="Pantalla de inicio: mascota, medallas y tarjetas de rutinas" width="260"><br><b>1 · Agenda y mascota</b></td>
+<td align="center" width="33%"><img src="docs/screenshots/2-mis-pasos.png" alt="Mis pasos siguientes: barra de progreso y tres pasos con el siguiente resaltado" width="260"><br><b>2 · Mis pasos siguientes</b></td>
+<td align="center" width="33%"><img src="docs/screenshots/3-guia.png" alt="Guía visual: pictograma, instrucción, temporizador de anillo y botón Hecho" width="260"><br><b>3 · Guía visual en acción</b></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/4-celebracion.png" alt="Celebración: Lo lograste, medalla y accesorio desbloqueado" width="260"><br><b>Celebración</b></td>
+<td align="center"><img src="docs/screenshots/5-ajustes.png" alt="Ajustes para adultos: ritmo del temporizador y opciones de voz" width="260"><br><b>Ajustes para adultos</b></td>
+<td align="center" valign="middle"><sub>Mismos textos, colores, tamaños y estados que el código SwiftUI.</sub></td>
+</tr>
+</table>
+
+> [!NOTE]
+> Estas imágenes son **maquetas** generadas a partir del diseño y del código; los íconos de SF Symbols
+> se sustituyeron por equivalentes. Se reemplazarán por capturas reales del simulador de iPad.
+
 ## 🧭 Cómo se usa
 
 ```mermaid
