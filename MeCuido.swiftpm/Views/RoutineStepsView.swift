@@ -67,7 +67,7 @@ private struct StepCard: View {
                 if isDone {
                     Image(systemName: "checkmark")
                         .font(.title2.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.onSuccess)
                 } else {
                     Text("\(number)")
                         .font(.title2.bold())
@@ -86,7 +86,7 @@ private struct StepCard: View {
 
             Text(isDone ? "¡Listo!" : (isNext ? "Sigue este" : "Pendiente"))
                 .font(.body.bold())
-                .foregroundStyle(isDone ? Theme.success : .secondary)
+                .foregroundStyle(isDone ? Theme.onSuccess : .secondary)
         }
         .padding(Theme.spacing)
         .frame(width: 240)
@@ -107,5 +107,6 @@ private struct StepCard: View {
         RoutineStepsView(routine: Routine.all[0])
     }
     .environment(ProgressStore())
+    .environment(SettingsStore())
     .fontDesign(.rounded)
 }

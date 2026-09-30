@@ -15,6 +15,8 @@ La fuente de verdad del producto es `docs/documento-de-diseno.md`.
 
 - Colores, espaciado y radios salen de `Theme` (`Theme/Theme.swift`); no hardcodear valores.
 - Tipografía: estilos de texto del sistema con `.fontDesign(.rounded)` (aplicado en la raíz).
-- Estado global: `ProgressStore` (`@Observable`) inyectado con `.environment`.
+- Estado global: `ProgressStore` (progreso del niño) y `SettingsStore` (ajustes de adultos), ambos `@Observable`, inyectados con `.environment`. Todo se persiste en `UserDefaults`.
+- Tiempo de un paso: usar `settings.seconds(for:)`, no `suggestedSeconds` directo. Narración automática solo si `settings.autoNarration`.
+- Texto sobre `Theme.success` usa `Theme.onSuccess` (el blanco no da contraste). La app fuerza modo claro.
 - Rutinas nuevas: agregarlas en `Routine.all` (`Models/Routine.swift`), 3 pasos, pictograma SF Symbol.
 - Textos de la interfaz en español, lenguaje positivo y neutral.

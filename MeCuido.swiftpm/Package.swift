@@ -18,8 +18,8 @@ let package = Package(
             targets: ["AppModule"],
             bundleIdentifier: "mx.aulainclusiva.mecuido",
             teamIdentifier: "",
-            displayVersion: "0.1",
-            bundleVersion: "1",
+            displayVersion: "0.2",
+            bundleVersion: "2",
             appIcon: .placeholder(icon: .heart),
             accentColor: .presetColor(.blue),
             supportedDeviceFamilies: [

@@ -18,17 +18,21 @@ El proyecto es un paquete de app de Swift Playgrounds (`MeCuido.swiftpm`):
 
 Requiere iOS / iPadOS 17.
 
-## Avance actual (v0.1)
+## Avance actual (v0.2)
 
 | Pantalla | Estado |
 | :--- | :--- |
-| 1 · Agenda principal y avatar | ✅ Tarjetas de rutinas, medallas y mascota con accesorios |
+| 1 · Agenda principal y avatar | ✅ Tarjetas de rutinas, medallas, mascota con accesorios y rutinas «¡Hecha hoy!» |
 | 2 · Mis pasos siguientes | ✅ Barra de progreso y secuencia horizontal de pictogramas |
 | 3 · Guía visual en acción | ✅ Pictograma animado, narración en voz, temporizador de anillo, botón «¡Hecho!» con háptica |
 | Celebración | ✅ Medalla y desbloqueo de accesorios |
+| Ajustes para adultos | ✅ Ritmo del temporizador, lectura automática y voz más lenta (mantener presionado el engrane 2 s) |
+
+El progreso de cada rutina se guarda: si la app se cierra a mitad de una rutina, el niño sigue donde se quedó.
 
 Accesibilidad incluida: botones de al menos 60 pt, etiquetas de VoiceOver, soporte para
-*Reducir movimiento*, estados que no dependen solo del color y tipografía SF Rounded con Dynamic Type.
+*Reducir movimiento*, estados que no dependen solo del color, texto oscuro sobre verde para cumplir contraste AA
+y tipografía SF Rounded con Dynamic Type.
 
 ## Estructura
 
@@ -36,17 +40,17 @@ Accesibilidad incluida: botones de al menos 60 pt, etiquetas de VoiceOver, sopor
 MeCuido.swiftpm/
 ├── Package.swift
 ├── App/MeCuidoApp.swift
-├── Models/          Routine, Reward (accesorios), ProgressStore
+├── Models/          Routine, Reward (accesorios), ProgressStore, SettingsStore
 ├── Services/        SpeechService (texto a voz es-MX)
 ├── Theme/           Colores, espaciado y formas del documento de diseño
-└── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker + Components
+└── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker, Settings + Components
 ```
 
 ## Siguientes pasos
 
 - Pictogramas / animaciones ilustradas propias en lugar de SF Symbols.
 - Probar con niños del rango de edad (criterio de éxito: completar una rutina de 3 pasos sin ayuda).
-- Ajustes para adultos (editar rutinas y tiempos).
+- Ajustes para adultos: editar rutinas y pasos.
 
 ## Equipo
 

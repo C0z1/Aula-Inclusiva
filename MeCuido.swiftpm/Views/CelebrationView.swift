@@ -5,6 +5,7 @@ struct CelebrationView: View {
     let accessory: Accessory?
     let onDone: () -> Void
 
+    @Environment(SettingsStore.self) private var settings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
 
@@ -14,7 +15,7 @@ struct CelebrationView: View {
 
             Image(systemName: "sparkles")
                 .font(.system(size: 90))
-                .foregroundStyle(.yellow)
+                .foregroundStyle(Theme.reward)
                 .symbolEffect(.bounce, value: appeared)
                 .accessibilityHidden(true)
 
@@ -52,12 +53,15 @@ struct CelebrationView: View {
             withAnimation(.spring) { appeared = true }
             var message = "¡Lo lograste! Ganaste una medalla."
             if let accessory { message += " Desbloqueaste: \(accessory.name)." }
-            SpeechService.shared.speak(message)
+            if settings.autoNarration {
+                SpeechService.shared.speak(message, slow: settings.slowSpeech)
+            }
         }
     }
 }
 
 #Preview {
     CelebrationView(accessory: Accessory.all[1]) {}
+        .environment(SettingsStore())
         .fontDesign(.rounded)
 }

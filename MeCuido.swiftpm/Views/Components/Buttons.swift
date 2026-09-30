@@ -5,7 +5,7 @@ struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.title2.bold())
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.onSuccess)
             .frame(maxWidth: .infinity, minHeight: 80)
             .padding(.horizontal, Theme.spacing)
             .background(Theme.success, in: RoundedRectangle(cornerRadius: Theme.buttonRadius))

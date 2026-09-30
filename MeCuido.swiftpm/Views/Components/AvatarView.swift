@@ -16,7 +16,7 @@ struct AvatarView: View {
             if let accessory {
                 Image(systemName: accessory.symbol)
                     .font(.system(size: size * 0.28))
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(Theme.reward)
                     .padding(size * 0.06)
                     .background(.white, in: Circle())
                     .offset(x: size * 0.08, y: -size * 0.08)

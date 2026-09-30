@@ -9,6 +9,8 @@ enum Theme {
     static let retry = Color(hex: 0xA9CBF2)        // Azul suave: reintento (nunca rojo)
     static let secondaryButton = Color(hex: 0xE3EEFB)
     static let background = Color(hex: 0xF6F9FE)
+    static let onSuccess = Color(hex: 0x053B2C)    // Texto sobre verde (contraste ≥ 4.5:1; el blanco no alcanza)
+    static let reward = Color(hex: 0xFFB800)       // Destellos y accesorios de recompensa
 
     // Espaciado amplio para evitar toques accidentales
     static let spacing: CGFloat = 24

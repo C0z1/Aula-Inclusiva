@@ -10,6 +10,7 @@ struct HomeView: View {
     @Environment(ProgressStore.self) private var progress
     @State private var path: [Route] = []
     @State private var showingAvatar = false
+    @State private var showingSettings = false
 
     private let columns = [GridItem(.adaptive(minimum: 260), spacing: Theme.spacing)]
 
@@ -26,7 +27,8 @@ struct HomeView: View {
                         ForEach(Routine.all) { routine in
                             NavigationLink(value: Route.routine(routine)) {
                                 RoutineCard(routine: routine,
-                                            completed: progress.completedCount(in: routine))
+                                            completed: progress.completedCount(in: routine),
+                                            doneToday: progress.isDoneToday(routine))
                             }
                             .buttonStyle(.plain)
                         }
@@ -48,6 +50,9 @@ struct HomeView: View {
             .sheet(isPresented: $showingAvatar) {
                 AvatarPickerView()
             }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
         }
     }
 
@@ -67,16 +72,37 @@ struct HomeView: View {
                       systemImage: "checkmark.seal.fill")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(Theme.primary)
+                Label("Hoy: \(progress.doneTodayCount(of: Routine.all)) de \(Routine.all.count) rutinas",
+                      systemImage: "calendar")
+                    .font(.body.bold())
+                    .foregroundStyle(.secondary)
             }
             .accessibilityElement(children: .combine)
             Spacer()
+            adultSettingsButton
         }
+    }
+
+    /// Mantener presionado evita que el niño abra los ajustes por accidente.
+    private var adultSettingsButton: some View {
+        Image(systemName: "gearshape.fill")
+            .font(.title)
+            .foregroundStyle(.secondary)
+            .frame(width: Theme.minTarget, height: Theme.minTarget)
+            .contentShape(Rectangle())
+            .onLongPressGesture(minimumDuration: 2) { showingSettings = true }
+            .accessibilityElement()
+            .accessibilityLabel("Ajustes para adultos")
+            .accessibilityHint("Mantén presionado dos segundos para abrir")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { showingSettings = true }
     }
 }
 
 private struct RoutineCard: View {
     let routine: Routine
     let completed: Int
+    let doneToday: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -91,6 +117,14 @@ private struct RoutineCard: View {
             Text(routine.category.rawValue)
                 .font(.body)
                 .foregroundStyle(.secondary)
+            if doneToday {
+                Label("¡Hecha hoy!", systemImage: "checkmark.circle.fill")
+                    .font(.body.bold())
+                    .foregroundStyle(Theme.onSuccess)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(Theme.success.opacity(0.35), in: Capsule())
+            }
             if completed > 0 {
                 Label("Vas en el paso \(completed + 1) de \(routine.steps.count)",
                       systemImage: "arrow.forward.circle.fill")
@@ -101,7 +135,10 @@ private struct RoutineCard: View {
         .frame(maxWidth: .infinity, minHeight: 200, alignment: .topLeading)
         .padding(Theme.spacing)
         .background(.white, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-        .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).stroke(Theme.secondaryButton, lineWidth: 2))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cardRadius)
+                .stroke(doneToday ? Theme.success : Theme.secondaryButton, lineWidth: doneToday ? 4 : 2)
+        )
         .contentShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
         .accessibilityElement(children: .combine)
         .accessibilityHint("Abre los pasos de esta rutina")
@@ -111,5 +148,6 @@ private struct RoutineCard: View {
 #Preview {
     HomeView()
         .environment(ProgressStore())
+        .environment(SettingsStore())
         .fontDesign(.rounded)
 }

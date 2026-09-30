@@ -7,18 +7,20 @@ struct StepGuideView: View {
     let onExit: () -> Void
 
     @Environment(ProgressStore.self) private var progress
+    @Environment(SettingsStore.self) private var settings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var index: Int
-    @State private var total: Int
-    @State private var remaining: Int
+    @State private var total = 0
+    @State private var remaining = 0
+    @State private var started = false
     @State private var isPaused = false
     @State private var doneCount = 0
     @State private var showSuccess = false
     @State private var showCelebration = false
     @State private var newAccessory: Accessory?
 
-    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private let speech = SpeechService.shared
 
     static let doItYourself = "¡Ahora hazlo tú y presiona el botón cuando termines!"
@@ -26,11 +28,7 @@ struct StepGuideView: View {
     init(routine: Routine, startIndex: Int, onExit: @escaping () -> Void) {
         self.routine = routine
         self.onExit = onExit
-        let start = min(max(startIndex, 0), routine.steps.count - 1)
-        let seconds = routine.steps[start].suggestedSeconds
-        _index = State(initialValue: start)
-        _total = State(initialValue: seconds)
-        _remaining = State(initialValue: seconds)
+        _index = State(initialValue: min(max(startIndex, 0), routine.steps.count - 1))
     }
 
     private var step: RoutineStep { routine.steps[index] }
@@ -94,9 +92,19 @@ struct StepGuideView: View {
         .navigationTitle(routine.title)
         .navigationBarTitleDisplayMode(.inline)
         .sensoryFeedback(.success, trigger: doneCount)
-        .onReceive(ticker) { _ in tick() }
-        .onAppear { speakStep() }
+        .task { await runTimer() }
+        .onAppear {
+            // El tiempo depende del ritmo elegido en Ajustes, que solo está disponible aquí.
+            guard !started else { return }
+            started = true
+            resetTimer()
+            if settings.autoNarration { speakStep() }
+        }
         .onDisappear { speech.stop() }
+        .onChange(of: scenePhase) { _, phase in
+            // Si la app pasa a segundo plano, el temporizador se detiene (ver tick) y la voz calla.
+            if phase != .active { speech.stop() }
+        }
         .fullScreenCover(isPresented: $showCelebration) {
             CelebrationView(accessory: newAccessory) {
                 showCelebration = false
@@ -150,23 +158,38 @@ struct StepGuideView: View {
 
     // MARK: - Acciones
 
+    @MainActor
+    private func runTimer() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(1))
+            tick()
+        }
+    }
+
     private func tick() {
-        guard !isPaused, !showCelebration, remaining > 0 else { return }
+        guard !isPaused, !showCelebration, scenePhase == .active, remaining > 0 else { return }
         withAnimation { remaining -= 1 }
     }
 
+    private func resetTimer() {
+        total = settings.seconds(for: step)
+        remaining = total
+    }
+
     private func speakStep(prefix: String = "") {
-        speech.speak("\(prefix)\(step.title). \(step.instruction) \(Self.doItYourself)")
+        speech.speak("\(prefix)\(step.title). \(step.instruction) \(Self.doItYourself)",
+                     slow: settings.slowSpeech)
     }
 
     private func go(to newIndex: Int, prefix: String = "") {
         withAnimation(reduceMotion ? nil : .spring) {
             index = newIndex
         }
-        total = step.suggestedSeconds
-        remaining = total
+        resetTimer()
         isPaused = false
-        speakStep(prefix: prefix)
+        if settings.autoNarration {
+            speakStep(prefix: prefix)
+        }
     }
 
     private func markDone() {
@@ -207,5 +230,6 @@ private struct SuccessBadge: View {
         StepGuideView(routine: Routine.all[0], startIndex: 0) {}
     }
     .environment(ProgressStore())
+    .environment(SettingsStore())
     .fontDesign(.rounded)
 }
