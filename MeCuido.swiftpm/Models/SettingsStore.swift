@@ -42,6 +42,12 @@ final class SettingsStore {
         didSet { defaults.set(slowSpeech, forKey: Self.slowSpeechKey) }
     }
 
+    /// Voz del sistema elegida por un adulto (identificador de AVSpeechSynthesisVoice).
+    /// nil = automática (español de México si está instalada).
+    var voiceIdentifier: String? {
+        didSet { defaults.set(voiceIdentifier, forKey: Self.voiceKey) }
+    }
+
     /// Campanita suave al terminar un paso o una rutina.
     var soundEffects: Bool {
         didSet { defaults.set(soundEffects, forKey: Self.soundEffectsKey) }
@@ -56,6 +62,7 @@ final class SettingsStore {
     private(set) var reminderMinutes: [DayMoment: Int]
 
     private let defaults: UserDefaults
+    private static let voiceKey = "settings.voice"
     private static let remindersKey = "settings.reminders"
     private static let reminderMinutesKey = "settings.reminderMinutes"
     private static let paceKey = "settings.pace"
@@ -69,6 +76,7 @@ final class SettingsStore {
         self.autoNarration = defaults.object(forKey: Self.autoNarrationKey) as? Bool ?? true
         self.slowSpeech = defaults.bool(forKey: Self.slowSpeechKey)
         self.soundEffects = defaults.object(forKey: Self.soundEffectsKey) as? Bool ?? true
+        self.voiceIdentifier = defaults.string(forKey: Self.voiceKey)
         self.remindersEnabled = defaults.bool(forKey: Self.remindersKey)
         let stored = defaults.dictionary(forKey: Self.reminderMinutesKey) as? [String: Int] ?? [:]
         self.reminderMinutes = Dictionary(uniqueKeysWithValues: stored.compactMap { key, value in

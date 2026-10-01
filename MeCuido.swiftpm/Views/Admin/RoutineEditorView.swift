@@ -5,6 +5,7 @@ struct RoutineEditorView: View {
     let routineID: String
 
     @Environment(RoutineStore.self) private var routines
+    @Environment(MediaStore.self) private var media
     @Environment(\.dismiss) private var dismiss
     @State private var draft: Routine?
     @State private var confirmingDelete = false
@@ -69,7 +70,10 @@ struct RoutineEditorView: View {
                     }
                 }
                 .onMove { routine.wrappedValue.steps.move(fromOffsets: $0, toOffset: $1) }
-                .onDelete { routine.wrappedValue.steps.remove(atOffsets: $0) }
+                .onDelete { offsets in
+                    media.deleteAll(stepIDs: offsets.map { routine.wrappedValue.steps[$0].id })
+                    routine.wrappedValue.steps.remove(atOffsets: offsets)
+                }
 
                 Button {
                     let steps = routine.wrappedValue.steps
@@ -95,11 +99,12 @@ struct RoutineEditorView: View {
                 .confirmationDialog("¿Borrar «\(routine.wrappedValue.title)»?", isPresented: $confirmingDelete,
                                     titleVisibility: .visible) {
                     Button("Borrar rutina", role: .destructive) {
+                        media.deleteAll(stepIDs: routine.wrappedValue.steps.map(\.id))
                         routines.delete(routine.wrappedValue)
                         dismiss()
                     }
                 } message: {
-                    Text("El progreso de esta rutina también se perderá. Las rutinas incluidas no se ven afectadas.")
+                    Text("También se borran su progreso, sus fotos y sus voces grabadas. Las rutinas incluidas no se ven afectadas.")
                 }
             }
         }

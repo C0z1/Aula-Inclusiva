@@ -30,7 +30,7 @@ struct RoutineReviewView: View {
                                 .foregroundStyle(Theme.primary)
                                 .frame(width: 52, height: 52)
                                 .background(Theme.secondaryButton, in: Circle())
-                            Pictogram(symbol: step.symbol, size: 90, animated: false)
+                            StepPictogram(step: step, size: 90, animated: false)
                             Text(step.title)
                                 .font(.title2.weight(.semibold))
                                 .multilineTextAlignment(.leading)
@@ -74,5 +74,6 @@ struct RoutineReviewView: View {
     NavigationStack {
         RoutineReviewView(routine: Routine.all[1], onConfirm: {}, onRevisit: { _ in })
     }
+    .environment(MediaStore())
     .fontDesign(.rounded)
 }

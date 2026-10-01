@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 /// Lista de rutinas para adultos: crear, personalizar, ocultar y respaldar.
 struct RoutinesAdminView: View {
     @Environment(RoutineStore.self) private var routines
+    @Environment(MediaStore.self) private var media
 
     @State private var openRoutineID: String?
     @State private var pendingDelete: Routine?
@@ -76,7 +77,7 @@ struct RoutinesAdminView: View {
             } header: {
                 Text("Respaldo")
             } footer: {
-                Text("Guarda tus rutinas en un archivo para pasarlas a otro iPad (por ejemplo, de casa a la escuela). Todo se queda en tus dispositivos.")
+                Text("Guarda tus rutinas y su agenda en un archivo para pasarlas a otro iPad (por ejemplo, de casa a la escuela). Las fotos y voces grabadas no van en el respaldo. Todo se queda en tus dispositivos.")
             }
         }
         .navigationTitle("Rutinas")
@@ -89,10 +90,11 @@ struct RoutinesAdminView: View {
                             titleVisibility: .visible,
                             presenting: pendingDelete) { routine in
             Button("Borrar rutina", role: .destructive) {
+                media.deleteAll(stepIDs: routine.steps.map(\.id))
                 routines.delete(routine)
             }
         } message: { _ in
-            Text("El progreso de esta rutina también se perderá.")
+            Text("También se borran su progreso, sus fotos y sus voces grabadas.")
         }
         .alert(message ?? "", isPresented: Binding(get: { message != nil },
                                                    set: { if !$0 { message = nil } })) {
@@ -168,5 +170,6 @@ private struct RoutineAdminRow: View {
     }
     .environment(RoutineStore())
     .environment(SettingsStore())
+    .environment(MediaStore())
     .fontDesign(.rounded)
 }

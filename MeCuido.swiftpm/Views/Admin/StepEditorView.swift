@@ -4,13 +4,14 @@ import SwiftUI
 struct StepEditorView: View {
     @Binding var step: RoutineStep
     @Environment(SettingsStore.self) private var settings
+    @Environment(MediaStore.self) private var media
 
     var body: some View {
         Form {
             Section {
                 HStack {
                     Spacer()
-                    Pictogram(symbol: step.symbol, size: 160, animated: false)
+                    StepPictogram(step: step, size: 160, animated: false)
                     Spacer()
                 }
                 .listRowBackground(Color.clear)
@@ -46,10 +47,12 @@ struct StepEditorView: View {
                 Text("Con el ritmo «\(settings.pace.title)» serán \(TimerRing.spoken(settings.seconds(for: step))). El tiempo nunca castiga.")
             }
 
+            StepMediaSections(step: step)
+
             Section {
                 Button {
-                    SpeechService.shared.speak("\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
-                                               slow: settings.slowSpeech)
+                    settings.narrate("\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
+                                     recording: media.existingURL(for: .voice, stepID: step.id))
                 } label: {
                     Label("Escuchar cómo se oye", systemImage: "speaker.wave.2.fill")
                 }

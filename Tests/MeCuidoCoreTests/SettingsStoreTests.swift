@@ -11,6 +11,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertTrue(settings.autoNarration)
         XCTAssertFalse(settings.slowSpeech)
         XCTAssertTrue(settings.soundEffects)
+        XCTAssertNil(settings.voiceIdentifier)
     }
 
     func testSecondsFollowPace() {
@@ -35,8 +36,12 @@ final class SettingsStoreTests: XCTestCase {
         settings.autoNarration = false
         settings.slowSpeech = true
         settings.soundEffects = false
+        settings.voiceIdentifier = "com.apple.voice.compact.es-MX.Paulina"
 
         let reloaded = SettingsStore(defaults: defaults)
+        XCTAssertEqual(reloaded.voiceIdentifier, "com.apple.voice.compact.es-MX.Paulina")
+        reloaded.voiceIdentifier = nil
+        XCTAssertNil(SettingsStore(defaults: defaults).voiceIdentifier, "Volver a la voz automática")
         XCTAssertEqual(reloaded.pace, .extraCalm)
         XCTAssertFalse(reloaded.autoNarration)
         XCTAssertTrue(reloaded.slowSpeech)

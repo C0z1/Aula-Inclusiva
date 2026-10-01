@@ -125,6 +125,7 @@ struct BuiltInRoutineView: View {
     let routine: Routine
 
     @Environment(RoutineStore.self) private var routines
+    @Environment(MediaStore.self) private var media
     @State private var openCopyID: String?
 
     var body: some View {
@@ -140,17 +141,36 @@ struct BuiltInRoutineView: View {
 
             Section {
                 ForEach(Array(routine.steps.enumerated()), id: \.element.id) { index, step in
-                    Label("\(index + 1). \(step.title)", systemImage: step.symbol)
+                    NavigationLink {
+                        BuiltInStepView(step: step)
+                    } label: {
+                        HStack {
+                            Label("\(index + 1). \(step.title)", systemImage: step.symbol)
+                            Spacer()
+                            if media.has(.photo, stepID: step.id) {
+                                Image(systemName: "photo.fill")
+                                    .foregroundStyle(Theme.primary)
+                                    .accessibilityLabel("Con foto")
+                            }
+                            if media.has(.voice, stepID: step.id) {
+                                Image(systemName: "mic.fill")
+                                    .foregroundStyle(Theme.primary)
+                                    .accessibilityLabel("Con voz grabada")
+                            }
+                        }
+                    }
                 }
                 Button {
-                    openCopyID = routines.duplicate(routine).id
+                    let copy = routines.duplicate(routine)
+                    media.copyMedia(from: routine.steps, to: copy.steps)
+                    openCopyID = copy.id
                 } label: {
                     Label("Duplicar para cambiar los pasos", systemImage: "plus.square.on.square")
                 }
             } header: {
                 Text("Pasos")
             } footer: {
-                Text("Los pasos de las rutinas incluidas no se editan; duplica la rutina para personalizarlos.")
+                Text("Toca un paso para ponerle una foto real o grabar su instrucción. Sus textos no se editan; duplica la rutina para cambiarlos.")
             }
         }
         .navigationTitle(routine.title)
@@ -158,6 +178,47 @@ struct BuiltInRoutineView: View {
         .navigationDestination(item: $openCopyID) { id in
             RoutineEditorView(routineID: id)
         }
+    }
+}
+
+/// Paso de una rutina incluida: texto de solo lectura, foto real y voz grabada.
+struct BuiltInStepView: View {
+    let step: RoutineStep
+
+    @Environment(SettingsStore.self) private var settings
+    @Environment(MediaStore.self) private var media
+
+    var body: some View {
+        Form {
+            Section {
+                HStack {
+                    Spacer()
+                    StepPictogram(step: step, size: 160, animated: false)
+                    Spacer()
+                }
+                .listRowBackground(Color.clear)
+            }
+
+            Section("Paso") {
+                Text(step.title)
+                    .font(.body.bold())
+                Text(step.instruction)
+            }
+
+            StepMediaSections(step: step)
+
+            Section {
+                Button {
+                    settings.narrate("\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
+                                     recording: media.existingURL(for: .voice, stepID: step.id))
+                } label: {
+                    Label("Escuchar cómo se oye", systemImage: "speaker.wave.2.fill")
+                }
+            }
+        }
+        .navigationTitle(step.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .onDisappear { SpeechService.shared.stop() }
     }
 }
 

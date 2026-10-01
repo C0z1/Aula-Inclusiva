@@ -25,3 +25,34 @@ struct Pictogram: View {
             .accessibilityHidden(true)
     }
 }
+
+/// Pictograma de un paso: la foto real que tomó un adulto (si hay) o el SF Symbol.
+/// La foto ayuda a reconocer los objetos propios del niño (su mochila, su cama).
+struct StepPictogram: View {
+    let step: RoutineStep
+    var size: CGFloat = 220
+    var animated = true
+
+    @Environment(MediaStore.self) private var media
+    @ScaledMetric(relativeTo: .largeTitle) private var scale: CGFloat = 1
+
+    private var scaledSize: CGFloat { size * min(scale, 1.4) }
+
+    var body: some View {
+        if let url = media.existingURL(for: .photo, stepID: step.id),
+           let image = PhotoCache.image(at: url, revision: media.revision) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: scaledSize, height: scaledSize)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius * 2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cardRadius * 2)
+                        .stroke(Theme.secondaryButton, lineWidth: 4)
+                )
+                .accessibilityHidden(true)
+        } else {
+            Pictogram(symbol: step.symbol, size: size, animated: animated)
+        }
+    }
+}

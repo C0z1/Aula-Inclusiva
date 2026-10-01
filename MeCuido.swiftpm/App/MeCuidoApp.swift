@@ -5,6 +5,7 @@ struct MeCuidoApp: App {
     @State private var progress = ProgressStore()
     @State private var settings = SettingsStore()
     @State private var routines = RoutineStore()
+    @State private var media = MediaStore()
 
     var body: some Scene {
         WindowGroup {
@@ -13,6 +14,7 @@ struct MeCuidoApp: App {
                 .environment(progress)
                 .environment(settings)
                 .environment(routines)
+                .environment(media)
                 .fontDesign(.rounded) // San Francisco Rounded en toda la app
                 .tint(Theme.primary)
                 // La paleta está pensada sobre fondos claros; en modo oscuro el texto quedaría ilegible.

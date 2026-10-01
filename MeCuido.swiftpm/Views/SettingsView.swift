@@ -54,10 +54,15 @@ private struct SettingsForm: View {
                 Section {
                     Toggle("Leer cada paso en voz alta", isOn: $settings.autoNarration)
                     Toggle("Voz más lenta", isOn: $settings.slowSpeech)
+                    NavigationLink {
+                        VoicePickerView()
+                    } label: {
+                        Label("Voz del iPad", systemImage: "person.wave.2.fill")
+                    }
                 } header: {
                     Text("Voz")
                 } footer: {
-                    Text("Si se apaga la lectura automática, el botón «Escuchar de nuevo» sigue disponible.")
+                    Text("Si se apaga la lectura automática, el botón «Escuchar de nuevo» sigue disponible. Los pasos con voz grabada por un familiar usan esa grabación.")
                 }
 
                 RemindersSection()
@@ -143,5 +148,6 @@ private struct RemindersSection: View {
     SettingsView()
         .environment(SettingsStore())
         .environment(RoutineStore())
+        .environment(MediaStore())
         .fontDesign(.rounded)
 }

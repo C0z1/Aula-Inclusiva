@@ -35,6 +35,7 @@ private struct StepGuideContent: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(SettingsStore.self) private var settings
     @Environment(RoutineStore.self) private var routines
+    @Environment(MediaStore.self) private var media
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
@@ -66,7 +67,7 @@ private struct StepGuideContent: View {
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(.secondary)
 
-                Pictogram(symbol: step.symbol, size: 260)
+                StepPictogram(step: step, size: 260)
                     .id(step.id)
                     .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
 
@@ -235,8 +236,9 @@ private struct StepGuideContent: View {
     }
 
     private func speakStep(prefix: String = "") {
-        speech.speak("\(prefix)\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
-                     slow: settings.slowSpeech)
+        // Con voz grabada por un familiar se reproduce tal cual (sin el prefijo).
+        settings.narrate("\(prefix)\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
+                         recording: media.existingURL(for: .voice, stepID: step.id))
     }
 
     private func go(to newIndex: Int, prefix: String = "") {
@@ -261,7 +263,7 @@ private struct StepGuideContent: View {
             settings.play(.stepDone)
             withAnimation(reduceMotion ? nil : .default) { showReview = true }
             if settings.autoNarration {
-                speech.speak(RoutineReviewView.spokenPrompt, slow: settings.slowSpeech)
+                settings.speak(RoutineReviewView.spokenPrompt)
             } else {
                 speech.stop()
             }
@@ -343,5 +345,6 @@ private struct SuccessBadge: View {
     .environment(ProgressStore())
     .environment(SettingsStore())
     .environment(RoutineStore())
+    .environment(MediaStore())
     .fontDesign(.rounded)
 }

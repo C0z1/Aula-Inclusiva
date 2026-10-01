@@ -68,7 +68,7 @@ struct CelebrationView: View {
             if let accessory { message += " Desbloqueaste: \(accessory.name)." }
             if let after { message += " Ahora sí: \(after.title)." }
             if settings.autoNarration {
-                SpeechService.shared.speak(message, slow: settings.slowSpeech)
+                settings.speak(message)
             }
         }
     }

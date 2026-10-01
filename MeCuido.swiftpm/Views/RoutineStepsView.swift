@@ -90,7 +90,7 @@ private struct StepCard: View {
             }
             .frame(width: 52, height: 52)
 
-            Pictogram(symbol: step.symbol, size: 150, animated: false)
+            StepPictogram(step: step, size: 150, animated: false)
                 .opacity(isDone ? 0.5 : 1)
 
             Text(step.title)
@@ -171,5 +171,6 @@ private struct FirstThenStrip: View {
     .environment(ProgressStore())
     .environment(SettingsStore())
     .environment(RoutineStore())
+    .environment(MediaStore())
     .fontDesign(.rounded)
 }

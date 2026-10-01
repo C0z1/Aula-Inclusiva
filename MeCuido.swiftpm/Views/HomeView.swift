@@ -275,5 +275,6 @@ private struct NowCard: View {
         .environment(ProgressStore())
         .environment(SettingsStore())
         .environment(RoutineStore())
+        .environment(MediaStore())
         .fontDesign(.rounded)
 }

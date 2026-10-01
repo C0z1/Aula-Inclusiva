@@ -31,6 +31,10 @@ let package = Package(
                 .landscapeRight,
                 .landscapeLeft,
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
+            ],
+            capabilities: [
+                .camera(purposeString: "Para tomar fotos de los objetos reales del niño (su mochila, su cama) y usarlas como pictogramas. Las fotos se quedan en este iPad."),
+                .microphone(purposeString: "Para grabar la voz de un familiar o maestra leyendo cada paso. Las grabaciones se quedan en este iPad.")
             ]
         )
     ],
