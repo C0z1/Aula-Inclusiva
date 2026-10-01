@@ -7,7 +7,7 @@ hagan sus rutinas diarias por sí mismos.**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://www.swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iPadOS_17-2A75D3?style=for-the-badge&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
-[![Versión](https://img.shields.io/badge/versión-0.5-06D6A0?style=for-the-badge)](#-avance-actual)
+[![Versión](https://img.shields.io/badge/versión-0.6-06D6A0?style=for-the-badge)](#-avance-actual)
 [![Accesibilidad](https://img.shields.io/badge/accesibilidad-primero-053B2C?style=for-the-badge)](#-accesibilidad)
 
 *Proyecto de la materia **Aula Inclusiva** · Design Thinking + Apple Human Interface Guidelines*
@@ -86,12 +86,12 @@ flowchart LR
 
 ## ✨ Avance actual
 
-**Versión 0.5**
+**Versión 0.6**
 
 - [x] Agenda del día con mascota, medallas y rutinas «¡Hecha hoy!»
 - [x] Secuencia de pasos con progreso visual
 - [x] Guía con narración en español de México, temporizador y retroalimentación háptica
-- [x] Medallas y 5 accesorios desbloqueables (estrella, gorra, corazón, corona, avión de papel)
+- [x] Medallas, 11 accesorios y 5 fondos desbloqueables
 - [x] El progreso se guarda: si la app se cierra, sigue donde se quedó
 - [x] Ajustes para adultos: ritmo *Normal / Con calma / Con mucha calma* y opciones de voz
 - [x] Campanitas de logro, soporte de texto grande y convivencia con VoiceOver
@@ -102,6 +102,8 @@ flowchart LR
 - [x] Recordatorios opcionales por la mañana, la tarde y la noche
 - [x] Fotos de los objetos reales del niño y voz grabada por un familiar en cada paso
 - [x] Elegir la voz del iPad que lee los pasos
+- [x] 6 mascotas para elegir, con nombre propio, que acompañan y festejan cada paso
+- [x] Álbum «Mis logros» que solo suma, y frases de ánimo variadas
 - [ ] Pictogramas y animaciones ilustradas propias (hoy usa SF Symbols o la foto real)
 - [ ] Prueba con niños del rango de edad
 
@@ -153,12 +155,13 @@ MeCuido.swiftpm/
 ├── Package.swift
 ├── App/MeCuidoApp.swift
 ├── Models/          Routine, RoutineStore, RoutinePlan (agenda), MediaStore (fotos y voces),
-│                    Reward, ProgressStore, SettingsStore, StepTimer, AdultGate
+│                    Reward (accesorios, mascotas, fondos), Achievement (álbum), ProgressStore,
+│                    SettingsStore, StepTimer, AdultGate
 ├── Services/        SpeechService (voz), VoiceRecorder, PhotoProcessing, SoundService (campanitas),
 │                    ReminderService, AudioSession
 ├── Theme/           Colores, espaciado y formas del documento de diseño
 └── Views/           Home, RoutineSteps, StepGuide, RoutineReview, Celebration, AvatarPicker,
-                     Settings, AdultGate
+                     Achievements, Settings, AdultGate
                      + Admin/ (editor de rutinas) + Components
 Package.swift        MeCuidoCore: compila Models/ para las pruebas
 Tests/               Pruebas de la lógica (XCTest)

@@ -57,8 +57,10 @@ MeCuido.swiftpm/
 │   │                           Agenda («Ahora toca»), Reminder (planeación), Weekday
 │   ├── AdultGate.swift         Pregunta de multiplicación para entrar a Ajustes
 │   ├── MediaStore.swift        @Observable: foto y voz grabada por id de paso (archivos locales)
-│   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
-│   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
+│   ├── Reward.swift            Accessory, Pet y Backdrop (catálogos; desbloqueo por medallas)
+│   ├── Achievement.swift       Achievement + AchievementCatalog (álbum) + Encouragement (frases)
+│   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio, mascota,
+│   │                           nombre, fondo, veces por rutina y pasos totales (solo suben)
 │   ├── SettingsStore.swift     @Observable: ritmo, voz (autoNarration, slowSpeech, voiceIdentifier),
 │   │                           soundEffects, recordatorios
 │   └── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
@@ -76,16 +78,17 @@ MeCuido.swiftpm/
     ├── RoutineStepsView.swift  Pantalla 2: «Mis pasos siguientes» + FirstThenStrip
     ├── StepGuideView.swift     Pantalla 3: guía (StepGuideContent) o EmptyRoutineView si no hay pasos
     ├── RoutineReviewView.swift Revisión final «¿Hiciste todo?» (dentro de la guía, si el plan la pide)
-    ├── CelebrationView.swift   fullScreenCover al terminar la rutina
-    ├── AvatarPickerView.swift  Sheet para equipar accesorios
+    ├── CelebrationView.swift   fullScreenCover al terminar: frase, mascota, accesorio, estampas nuevas
+    ├── AvatarPickerView.swift  Sheet «Mi mascota»: nombre, mascota, accesorios, fondos
+    ├── AchievementsView.swift  Sheet «Mis logros» (álbum de estampas)
     ├── AdultGateView.swift     Pregunta + teclado grande antes de los ajustes
     ├── SettingsView.swift      Sheet de adultos (long press 2 s → AdultGateView → SettingsForm)
     ├── Admin/                  RoutinesAdminView, RoutineEditorView, StepEditorView,
     │                           RoutinePlanView (PlanSections, BuiltInRoutineView, BuiltInStepView,
     │                           WeekdayPicker), StepMediaSections (+ CameraPicker), VoicePickerView,
     │                           SymbolPickerView (SymbolCatalog), RoutinesBackupDocument
-    └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram + StepPictogram,
-                                TimerRing
+    └── Components/             AvatarView (`AvatarView(progress:)`), Buttons (.primary/.secondary),
+                                Pictogram + StepPictogram, TimerRing
 ```
 
 **Flujo:** `HomeView` (NavigationStack con `path: [Route]`) → `.routine` → `RoutineStepsView` →
@@ -97,7 +100,8 @@ terminar, si `plan.reviewEnabled` muestra `RoutineReviewView`, y luego `finishRo
 **Persistencia:** `UserDefaults` con claves `medals`, `equippedAccessory`, `completedSteps`
 (array de ids de paso), `lastFinished` (`[routineId: timeIntervalSince1970]`), `settings.pace`,
 `settings.autoNarration`, `settings.slowSpeech`, `settings.soundEffects`, `settings.reminders`,
-`settings.reminderMinutes`. **No renombrar claves ni ids de rutina/paso**
+`settings.reminderMinutes`, `settings.voice`, `routineCounts`, `stepsDone`, `pet.id`, `pet.name`,
+`backdrop`. **No renombrar claves ni ids de rutina/paso/accesorio/mascota/fondo**
 (`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
 Rutinas personalizadas, ocultas y planes: `Application Support/rutinas.json` (`RoutineStore.Snapshot`
 v2 con `plans`; lee también v1. Subir `version` si cambia el formato y mantener la lectura de la
@@ -127,6 +131,9 @@ personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 - Pictograma de un paso: siempre `StepPictogram(step:)` (usa la foto real si existe).
   Al borrar o duplicar pasos/rutinas, llamar `media.deleteAll` / `media.copyMedia`.
 - Fotos: solo objetos, sin personas; nunca salen del iPad.
+- Motivación: los contadores y logros solo suben; nada de rachas, vidas ni comparaciones. Al
+  agregar accesorios o fondos, no subir el `medalsRequired` de los existentes. Frases de ánimo
+  nuevas van en `Encouragement` (positivas, neutrales en género).
 - Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
   sonidos de logro; nunca de error, alarma o tiempo agotado.
 - Lógica con estado (temporizadores, reglas de progreso) va en modelos sin SwiftUI, no en la vista.
@@ -165,6 +172,6 @@ cada fase debe dejar la app usable de principio a fin.
 | 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
 | — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
 
-**Fase en curso:** 4 (Fases 0–3 esperan la verificación en iPad; en la 3 faltan las
+**Fase en curso:** 5 (Fases 0–4 esperan la verificación en iPad; en la 3 faltan las
 ilustraciones propias, que hace el equipo). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
 checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.

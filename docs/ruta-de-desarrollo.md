@@ -140,12 +140,20 @@ Objetivo: pictogramas más claros y conectados con los objetos reales del niño.
 
 ## Fase 4 — v0.6 · Mascota y motivación sin castigo
 
-- [ ] Nombrar a la mascota; elegir entre 3–4 mascotas; saludo con su nombre.
-- [ ] Reacciones de la mascota en la guía y la celebración (respetando *Reducir movimiento*).
-- [ ] Más accesorios y fondos con una curva de desbloqueo amable (primero frecuente, luego espaciada).
-- [ ] **Álbum de logros acumulativo** («Has tendido tu cama 10 veces»). Nunca rachas que se pierden
-      ni contadores que bajan.
-- [ ] Mensajes de ánimo variados (banco de frases positivas, sin repetir la misma seguida).
+- [x] Elegir entre 6 mascotas (huellita, perrito, gatito, conejito, tortuga, pajarito) y ponerle
+      nombre (máx. 16 letras; vacío = nombre de fábrica). La celebración dice «¡Canelo está muy feliz!».
+- [x] Reacciones: en la guía la mascota salta y muestra la frase de ánimo al terminar cada paso; en
+      la celebración salta y aparece. Sin movimiento con *Reducir movimiento*.
+- [x] 11 accesorios (1, 2, 3, 5, 8, 10, 12, 15, 20, 25 y 30 medallas) y 5 fondos pastel (0, 4, 9,
+      14 y 18 medallas). Los umbrales de los accesorios anteriores no subieron (hay prueba).
+- [x] **Álbum «Mis logros»**: series de rutinas en total (1…200), pasos hechos (10…500) y veces por
+      rutina (1…100). Muestra lo ganado y solo la siguiente meta de cada serie, con su avance.
+      Los contadores solo suben; repasar un paso no cuenta doble. Las estampas nuevas salen en la
+      celebración.
+- [x] Frases de ánimo variadas al terminar un paso y en el título de la celebración, sin repetir la
+      misma seguida.
+- [ ] **Verificar en iPad**: elegir mascota y nombre, salto en la guía con y sin *Reducir
+      movimiento*, estampa nueva en la celebración, álbum con texto grande.
 
 ---
 
