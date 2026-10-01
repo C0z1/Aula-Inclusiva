@@ -18,8 +18,8 @@ let package = Package(
             targets: ["AppModule"],
             bundleIdentifier: "mx.aulainclusiva.mecuido",
             teamIdentifier: "",
-            displayVersion: "0.3",
-            bundleVersion: "4",
+            displayVersion: "0.4",
+            bundleVersion: "5",
             appIcon: .placeholder(icon: .heart),
             accentColor: .presetColor(.blue),
             // Solo iPad: el diseño (pictogramas grandes, áreas táctiles amplias) está pensado para su pantalla.

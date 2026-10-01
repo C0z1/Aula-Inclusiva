@@ -87,15 +87,21 @@ la completa sin ayuda.
 
 Objetivo: que la app ayude a **iniciar** la rutina correcta, no solo a seguirla.
 
-- [ ] Cada rutina tiene momentos (`mañana`, `tarde`, `noche`) y días de la semana.
-- [ ] Inicio muestra primero una tarjeta grande **«Ahora toca»** según la hora; el resto debajo.
-      «¡Hecha hoy!» ya existe y se mantiene.
-- [ ] Tablero **Primero → Después** (estrategia común para TDA): el adulto elige qué actividad
-      agradable sigue a la rutina («Primero: tender mi cama → Después: jugar»).
-- [ ] Recordatorios locales opcionales (`UserNotifications`), mensaje positivo y sin insistencia;
-      se configuran solo desde Ajustes.
-- [ ] Revisión final opcional por rutina («¿Revisaste…?») para que el niño corrija solo un paso
-      olvidado (objetivo «DESPUÉS» del documento de diseño).
+- [x] Cada rutina tiene un `RoutinePlan`: momentos (mañana 5–12 h, tarde 12–19 h, noche 19–5 h)
+      y días. Sin momento = «cuando se necesite» (nunca «Ahora toca»). Planes de fábrica: agujetas y
+      cama en la mañana; mochila las noches de escuela (dom a jue) con revisión; manos y herida,
+      cuando se necesite. Las incluidas también se pueden reprogramar.
+- [x] Inicio: saludo según la hora y tarjeta grande **«Ahora toca»** (prioriza la rutina ya empezada);
+      «¡Terminaste todas tus rutinas de hoy!» al completar lo programado; «Hoy: x de N» cuenta solo
+      lo programado para hoy. Cada tarjeta muestra su momento.
+- [x] Tablero **Primero → Después**: el adulto elige una actividad sugerida o escribe otra; se ve
+      en la tarjeta «Ahora toca», en «Mis pasos» y en la celebración («Ahora sí: jugar»).
+- [x] Recordatorios locales opcionales: uno por momento y día con todas las rutinas que tocan
+      (máx. 21; iOS permite 64), hora ajustable por momento, apagados por defecto.
+- [x] Revisión final opcional: «¿Hiciste todo?» con los pasos; tocar uno vuelve a él y al
+      presionar «¡Hecho!» regresa a la revisión. Nada se marca como error.
+- [ ] **Verificar en iPad**: «Ahora toca» en la mañana y en la noche de un jueves, recordatorio a
+      la hora elegida, revisión de la mochila, Primero → Después con VoiceOver.
 
 **Aceptación:** al abrir la app por la mañana, el niño identifica e inicia su rutina sin preguntar.
 

@@ -7,7 +7,7 @@ hagan sus rutinas diarias por sí mismos.**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://www.swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iPadOS_17-2A75D3?style=for-the-badge&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
-[![Versión](https://img.shields.io/badge/versión-0.3-06D6A0?style=for-the-badge)](#-avance-actual)
+[![Versión](https://img.shields.io/badge/versión-0.4-06D6A0?style=for-the-badge)](#-avance-actual)
 [![Accesibilidad](https://img.shields.io/badge/accesibilidad-primero-053B2C?style=for-the-badge)](#-accesibilidad)
 
 *Proyecto de la materia **Aula Inclusiva** · Design Thinking + Apple Human Interface Guidelines*
@@ -86,7 +86,7 @@ flowchart LR
 
 ## ✨ Avance actual
 
-**Versión 0.3**
+**Versión 0.4**
 
 - [x] Agenda del día con mascota, medallas y rutinas «¡Hecha hoy!»
 - [x] Secuencia de pasos con progreso visual
@@ -98,6 +98,8 @@ flowchart LR
 - [x] Pruebas automáticas de la lógica (`swift test`)
 - [x] Rutinas propias: los adultos crean, duplican, ocultan y respaldan rutinas de 1 a 5 pasos
 - [x] Ajustes protegidos con una pregunta para adultos
+- [x] Agenda del día: «Ahora toca» según la hora, tablero *Primero → Después* y revisión final
+- [x] Recordatorios opcionales por la mañana, la tarde y la noche
 - [ ] Pictogramas y animaciones ilustradas propias (hoy usa SF Symbols)
 - [ ] Prueba con niños del rango de edad
 
@@ -148,10 +150,12 @@ Requiere **iPadOS 17**.
 MeCuido.swiftpm/
 ├── Package.swift
 ├── App/MeCuidoApp.swift
-├── Models/          Routine, RoutineStore, Reward, ProgressStore, SettingsStore, StepTimer, AdultGate
-├── Services/        SpeechService (voz es-MX), SoundService (campanitas), AudioSession
+├── Models/          Routine, RoutineStore, RoutinePlan (agenda), Reward, ProgressStore,
+│                    SettingsStore, StepTimer, AdultGate
+├── Services/        SpeechService (voz es-MX), SoundService (campanitas), ReminderService, AudioSession
 ├── Theme/           Colores, espaciado y formas del documento de diseño
-└── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker, Settings, AdultGate
+└── Views/           Home, RoutineSteps, StepGuide, RoutineReview, Celebration, AvatarPicker,
+                     Settings, AdultGate
                      + Admin/ (editor de rutinas) + Components
 Package.swift        MeCuidoCore: compila Models/ para las pruebas
 Tests/               Pruebas de la lógica (XCTest)

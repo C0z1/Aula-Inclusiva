@@ -52,7 +52,9 @@ MeCuido.swiftpm/
 ├── App/MeCuidoApp.swift        Raíz: crea los stores, .fontDesign(.rounded), fuerza modo claro
 ├── Models/
 │   ├── Routine.swift           Routine / RoutineStep (structs Codable) + rutinas incluidas Routine.all
-│   ├── RoutineStore.swift      @Observable: rutinas personalizadas + ocultas (JSON), respaldo
+│   ├── RoutineStore.swift      @Observable: rutinas personalizadas, ocultas y planes (JSON), respaldo
+│   ├── RoutinePlan.swift       DayMoment, RoutinePlan (agenda, Primero → Después, revisión),
+│   │                           Agenda («Ahora toca»), Reminder (planeación), Weekday
 │   ├── AdultGate.swift         Pregunta de multiplicación para entrar a Ajustes
 │   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
 │   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
@@ -61,32 +63,38 @@ MeCuido.swiftpm/
 ├── Services/
 │   ├── SpeechService.swift     AVSpeechSynthesizer (es-MX → es-ES); con VoiceOver activo, anuncio
 │   ├── SoundService.swift      Campanitas de logro generadas con AVAudioEngine (sin archivos)
-│   └── AudioSession.swift      Configura una sola vez la AVAudioSession compartida
+│   ├── AudioSession.swift      Configura una sola vez la AVAudioSession compartida
+│   └── ReminderService.swift   Notificaciones locales + modificador .syncReminders() (en la raíz)
 ├── Theme/Theme.swift           Colores, espaciado, radios, minTarget, Color(hex:)
 └── Views/
-    ├── HomeView.swift          Pantalla 1: agenda + mascota + engrane de adultos; define `Route`
-    ├── RoutineStepsView.swift  Pantalla 2: «Mis pasos siguientes»
+    ├── HomeView.swift          Pantalla 1: saludo, «Ahora toca» (NowCard), rutinas; define `Route`
+    ├── RoutineStepsView.swift  Pantalla 2: «Mis pasos siguientes» + FirstThenStrip
     ├── StepGuideView.swift     Pantalla 3: guía (StepGuideContent) o EmptyRoutineView si no hay pasos
+    ├── RoutineReviewView.swift Revisión final «¿Hiciste todo?» (dentro de la guía, si el plan la pide)
     ├── CelebrationView.swift   fullScreenCover al terminar la rutina
     ├── AvatarPickerView.swift  Sheet para equipar accesorios
     ├── AdultGateView.swift     Pregunta + teclado grande antes de los ajustes
     ├── SettingsView.swift      Sheet de adultos (long press 2 s → AdultGateView → SettingsForm)
     ├── Admin/                  RoutinesAdminView, RoutineEditorView, StepEditorView,
+    │                           RoutinePlanView (PlanSections, BuiltInRoutineView, WeekdayPicker),
     │                           SymbolPickerView (SymbolCatalog), RoutinesBackupDocument
     └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram, TimerRing
 ```
 
 **Flujo:** `HomeView` (NavigationStack con `path: [Route]`) → `.routine` → `RoutineStepsView` →
-`.guide(routine, startIndex)` → `StepGuideView` → `markDone()` avanza al siguiente pendiente o llama
-`progress.finish(routine)` (+1 medalla, reinicia los pasos, guarda fecha) → `CelebrationView` →
-`onExit` vacía el `path`.
+`.guide(routine, startIndex)` → `StepGuideView` → `markDone()` avanza al siguiente pendiente; al
+terminar, si `plan.reviewEnabled` muestra `RoutineReviewView`, y luego `finishRoutine()` llama
+`progress.finish(routine)` (+1 medalla, reinicia los pasos, guarda fecha) → `CelebrationView`
+(con la actividad de después) → `onExit` vacía el `path`.
 
 **Persistencia:** `UserDefaults` con claves `medals`, `equippedAccessory`, `completedSteps`
 (array de ids de paso), `lastFinished` (`[routineId: timeIntervalSince1970]`), `settings.pace`,
-`settings.autoNarration`, `settings.slowSpeech`, `settings.soundEffects`. **No renombrar claves ni ids de rutina/paso**
+`settings.autoNarration`, `settings.slowSpeech`, `settings.soundEffects`, `settings.reminders`,
+`settings.reminderMinutes`. **No renombrar claves ni ids de rutina/paso**
 (`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
-Rutinas personalizadas y ocultas: `Application Support/rutinas.json` (`RoutineStore.Snapshot`,
-con `version`; subirla si cambia el formato y mantener la lectura de la anterior). Ids
+Rutinas personalizadas, ocultas y planes: `Application Support/rutinas.json` (`RoutineStore.Snapshot`
+v2 con `plans`; lee también v1. Subir `version` si cambia el formato y mantener la lectura de la
+anterior). Solo se guardan los planes distintos del de fábrica (`RoutinePlan.defaultPlan(for:)`). Ids
 personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 
 ## Convenciones de código
@@ -100,7 +108,10 @@ personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 - Los stores reciben su almacenamiento por inicializador (`defaults: .standard`, `fileURL:`) para
   probarlos aislados. Mantener ese patrón en stores nuevos.
 - Las rutinas del niño salen de `routines.visibleRoutines` (nunca de `Routine.all` directo en vistas
-  del niño). Cambios a rutinas solo por `RoutineStore` (`save`, `duplicate`, `delete`, `setHidden`).
+  del niño). Cambios a rutinas solo por `RoutineStore` (`save`, `duplicate`, `delete`, `setHidden`,
+  `setPlan`). Plan de una rutina: `routines.plan(for:)`; agenda: `Agenda.current` / `scheduledToday`.
+- Fechas en la lógica de agenda: pasar `now` y `calendar` como parámetros (para probar horarios).
+- Recordatorios: nunca insistentes ni con urgencia; apagados por defecto; solo locales.
 - Tiempo de un paso: `settings.seconds(for:)`, nunca `step.suggestedSeconds` directo.
   Narración automática solo si `settings.autoNarration`; voz lenta con `slow: settings.slowSpeech`.
 - Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
@@ -140,5 +151,5 @@ cada fase debe dejar la app usable de principio a fin.
 | 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
 | — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
 
-**Fase en curso:** 2 (Fases 0 y 1 esperan la verificación en iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
+**Fase en curso:** 3 (Fases 0, 1 y 2 esperan la verificación en iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
 checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.
