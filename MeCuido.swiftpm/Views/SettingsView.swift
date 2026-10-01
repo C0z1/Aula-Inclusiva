@@ -1,9 +1,24 @@
 import SwiftUI
 
-/// Ajustes para adultos (maestra, papá o mamá). Se abre manteniendo presionado
-/// el engrane del inicio, para que el niño no los cambie por accidente.
+/// Ajustes para adultos (maestra, papá o mamá). Se abre manteniendo presionado el engrane
+/// del inicio y respondiendo la pregunta de `AdultGateView`, para que el niño no los cambie
+/// por accidente.
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var unlocked = false
+
+    var body: some View {
+        if unlocked {
+            SettingsForm()
+        } else {
+            AdultGateView(onPass: { unlocked = true }, onCancel: { dismiss() })
+        }
+    }
+}
+
+private struct SettingsForm: View {
     @Environment(SettingsStore.self) private var settings
+    @Environment(RoutineStore.self) private var routines
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -11,6 +26,17 @@ struct SettingsView: View {
 
         NavigationStack {
             Form {
+                Section {
+                    NavigationLink {
+                        RoutinesAdminView()
+                    } label: {
+                        Label("Rutinas", systemImage: "list.bullet.rectangle.fill")
+                            .badge(routines.visibleRoutines.count)
+                    }
+                } footer: {
+                    Text("Crea rutinas nuevas, personaliza una copia de las incluidas u oculta las que no se usan.")
+                }
+
                 Section {
                     Picker("Ritmo", selection: $settings.pace) {
                         ForEach(SettingsStore.Pace.allCases) { pace in
@@ -57,5 +83,6 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environment(SettingsStore())
+        .environment(RoutineStore())
         .fontDesign(.rounded)
 }

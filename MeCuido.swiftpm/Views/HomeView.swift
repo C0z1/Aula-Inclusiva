@@ -8,6 +8,7 @@ enum Route: Hashable {
 /// Pantalla 1: Agenda principal y avatar.
 struct HomeView: View {
     @Environment(ProgressStore.self) private var progress
+    @Environment(RoutineStore.self) private var routines
     @State private var path: [Route] = []
     @State private var showingAvatar = false
     @State private var showingSettings = false
@@ -23,8 +24,17 @@ struct HomeView: View {
                     Text("¿Qué vas a hacer ahora?")
                         .font(.title2.weight(.semibold))
 
+                    if routines.visibleRoutines.isEmpty {
+                        Label("Todavía no hay rutinas. Pídele a un adulto que agregue una.",
+                              systemImage: "square.dashed")
+                            .font(.title3.weight(.semibold))
+                            .padding(Theme.spacing)
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.retry.opacity(0.4), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+                    }
+
                     LazyVGrid(columns: columns, spacing: Theme.spacing) {
-                        ForEach(Routine.all) { routine in
+                        ForEach(routines.visibleRoutines) { routine in
                             NavigationLink(value: Route.routine(routine)) {
                                 RoutineCard(routine: routine,
                                             completed: progress.completedCount(in: routine),
@@ -72,7 +82,7 @@ struct HomeView: View {
                       systemImage: "checkmark.seal.fill")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(Theme.primary)
-                Label("Hoy: \(progress.doneTodayCount(of: Routine.all)) de \(Routine.all.count) rutinas",
+                Label("Hoy: \(progress.doneTodayCount(of: routines.visibleRoutines)) de \(routines.visibleRoutines.count) rutinas",
                       systemImage: "calendar")
                     .font(.body.bold())
                     .foregroundStyle(.secondary)
@@ -83,7 +93,8 @@ struct HomeView: View {
         }
     }
 
-    /// Mantener presionado evita que el niño abra los ajustes por accidente.
+    /// Mantener presionado (y luego resolver la pregunta de `AdultGateView`) evita que el niño
+    /// abra los ajustes por accidente.
     private var adultSettingsButton: some View {
         Image(systemName: "gearshape.fill")
             .font(.title)
@@ -151,5 +162,6 @@ private struct RoutineCard: View {
     HomeView()
         .environment(ProgressStore())
         .environment(SettingsStore())
+        .environment(RoutineStore())
         .fontDesign(.rounded)
 }

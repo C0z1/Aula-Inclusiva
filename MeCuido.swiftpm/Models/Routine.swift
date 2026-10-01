@@ -1,28 +1,31 @@
 import Foundation
 
 /// Un paso de una rutina. La app muestra el "cómo"; el niño lo hace en el mundo real.
-struct RoutineStep: Identifiable, Hashable {
+/// El `id` nunca cambia: el progreso guardado depende de él.
+struct RoutineStep: Identifiable, Hashable, Codable {
     let id: String
-    let title: String
+    var title: String
     /// Instrucción corta que se narra en voz alta.
-    let instruction: String
+    var instruction: String
     /// SF Symbol que funciona como pictograma.
-    let symbol: String
+    var symbol: String
     /// Tiempo sugerido en segundos (ajustable por el niño, sin penalización).
-    let suggestedSeconds: Int
+    var suggestedSeconds: Int
 }
 
-struct Routine: Identifiable, Hashable {
-    enum Category: String {
+struct Routine: Identifiable, Hashable, Codable {
+    enum Category: String, CaseIterable, Identifiable, Codable {
         case organizarme = "Organizarme"
         case cuidarme = "Cuidarme"
+
+        var id: String { rawValue }
     }
 
     let id: String
-    let title: String
-    let symbol: String
-    let category: Category
-    let steps: [RoutineStep]
+    var title: String
+    var symbol: String
+    var category: Category
+    var steps: [RoutineStep]
 }
 
 extension Routine {

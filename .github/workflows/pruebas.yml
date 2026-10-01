@@ -1,9 +1,9 @@
 name: Pruebas
 
+# En cada push a cualquier rama (incluye las ramas de los PR).
 on:
   push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   modelos:
@@ -12,4 +12,22 @@ jobs:
     container: swift:5.10-jammy
     steps:
       - uses: actions/checkout@v4
+      - name: Sintaxis de toda la app
+        run: find MeCuido.swiftpm -name '*.swift' ! -name Package.swift -print0 | xargs -0 swiftc -parse
       - run: swift test
+
+  app:
+    name: compilar app (iPad)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Esquemas disponibles
+        working-directory: MeCuido.swiftpm
+        run: xcodebuild -list
+      - name: Compilar para el simulador de iPad
+        working-directory: MeCuido.swiftpm
+        run: |
+          xcodebuild build \
+            -scheme "Me Cuido" \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
