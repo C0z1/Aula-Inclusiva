@@ -12,6 +12,7 @@ struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var path: [Route] = []
     @State private var showingAvatar = false
+    @State private var showingAchievements = false
     @State private var showingSettings = false
     /// Hora con la que se arma la agenda; se actualiza cada minuto y al volver a la app.
     @State private var now = Date.now
@@ -97,6 +98,9 @@ struct HomeView: View {
             .sheet(isPresented: $showingAvatar) {
                 AvatarPickerView()
             }
+            .sheet(isPresented: $showingAchievements) {
+                AchievementsView()
+            }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
             }
@@ -117,9 +121,9 @@ struct HomeView: View {
             Button {
                 showingAvatar = true
             } label: {
-                AvatarView(accessory: progress.equippedAccessory)
+                AvatarView(progress: progress)
             }
-            .accessibilityHint("Abre tu mascota para ponerle accesorios")
+            .accessibilityHint("Abre tu mascota para elegirla, ponerle nombre y accesorios")
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(DayMoment.at(now).greeting)
@@ -137,6 +141,12 @@ struct HomeView: View {
             }
             .accessibilityElement(children: .combine)
             Spacer()
+            Button {
+                showingAchievements = true
+            } label: {
+                Label("Mis logros", systemImage: "book.closed.fill")
+            }
+            .buttonStyle(.secondary)
             adultSettingsButton
         }
     }

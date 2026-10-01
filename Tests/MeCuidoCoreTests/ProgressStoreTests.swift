@@ -36,8 +36,9 @@ final class ProgressStoreTests: XCTestCase {
     func testFinishReturnsOnlyNewlyUnlockedAccessory() {
         let progress = ProgressStore(defaults: makeTestDefaults())
         XCTAssertEqual(progress.finish(routine)?.id, "estrella") // 1 medalla
-        XCTAssertNil(progress.finish(routine))                    // 2 medallas
-        XCTAssertEqual(progress.finish(routine)?.id, "gorra")     // 3 medallas
+        XCTAssertEqual(progress.finish(routine)?.id, "hojita")   // 2 medallas
+        XCTAssertEqual(progress.finish(routine)?.id, "gorra")    // 3 medallas
+        XCTAssertNil(progress.finish(routine))                   // 4 medallas
     }
 
     func testDoneTodayResetsOnNextDay() {

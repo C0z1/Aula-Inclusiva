@@ -1,21 +1,68 @@
 import SwiftUI
 
-/// Permite al niño vestir a su mascota con los accesorios que ha ganado.
+/// El niño elige su mascota, le pone nombre y la viste con lo que ha ganado.
 struct AvatarPickerView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
 
     private let columns = [GridItem(.adaptive(minimum: 140), spacing: Theme.spacing)]
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: Theme.padding) {
-                    AvatarView(accessory: progress.equippedAccessory, size: 180)
+                VStack(alignment: .leading, spacing: Theme.padding) {
+                    AvatarView(progress: progress, size: 180)
+                        .frame(maxWidth: .infinity)
 
-                    LazyVGrid(columns: columns, spacing: Theme.spacing) {
-                        accessoryButton(nil)
-                        ForEach(Accessory.all) { accessoryButton($0) }
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Su nombre")
+                            .font(.title3.weight(.semibold))
+                        TextField(progress.pet.defaultName, text: $name)
+                            .font(.title2.weight(.semibold))
+                            .textInputAutocapitalization(.words)
+                            .padding(20)
+                            .frame(minHeight: Theme.minTarget)
+                            .background(.white, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+                            .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius)
+                                .stroke(Theme.secondaryButton, lineWidth: 2))
+                            .onChange(of: name) { _, newName in progress.setPetName(newName) }
+                    }
+
+                    section("Elige tu mascota") {
+                        ForEach(Pet.all) { pet in
+                            tile(symbol: pet.symbol, title: pet.kind, isUnlocked: true,
+                                 isSelected: progress.petID == pet.id, lockedText: nil) {
+                                progress.choosePet(pet)
+                            }
+                        }
+                    }
+
+                    section("Accesorios") {
+                        tile(symbol: "circle.slash", title: "Nada", isUnlocked: true,
+                             isSelected: progress.equippedAccessoryID == nil, lockedText: nil) {
+                            progress.equip(nil)
+                        }
+                        ForEach(Accessory.all) { accessory in
+                            tile(symbol: accessory.symbol, title: accessory.name,
+                                 isUnlocked: accessory.medalsRequired <= progress.medals,
+                                 isSelected: progress.equippedAccessoryID == accessory.id,
+                                 lockedText: "\(accessory.medalsRequired) medallas") {
+                                progress.equip(accessory)
+                            }
+                        }
+                    }
+
+                    section("Fondos") {
+                        ForEach(Backdrop.all) { backdrop in
+                            tile(symbol: "circle.fill", title: backdrop.name,
+                                 isUnlocked: backdrop.medalsRequired <= progress.medals,
+                                 isSelected: progress.backdrop.id == backdrop.id,
+                                 lockedText: "\(backdrop.medalsRequired) medallas",
+                                 symbolColor: Color(hex: backdrop.top)) {
+                                progress.chooseBackdrop(backdrop)
+                            }
+                        }
                     }
                 }
                 .padding(Theme.padding)
@@ -29,40 +76,61 @@ struct AvatarPickerView: View {
                         .frame(minWidth: Theme.minTarget, minHeight: 44)
                 }
             }
+            .onAppear { name = progress.petName }
         }
     }
 
-    private func accessoryButton(_ accessory: Accessory?) -> some View {
-        let unlocked = accessory.map { $0.medalsRequired <= progress.medals } ?? true
-        let selected = progress.equippedAccessoryID == accessory?.id
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.title3.weight(.semibold))
+            LazyVGrid(columns: columns, spacing: Theme.spacing) {
+                content()
+            }
+        }
+    }
 
-        return Button {
-            progress.equip(accessory)
-        } label: {
+    private func tile(symbol: String, title: String, isUnlocked: Bool, isSelected: Bool, lockedText: String?,
+                      symbolColor: Color = Theme.primary, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
             VStack(spacing: 12) {
-                Image(systemName: unlocked ? (accessory?.symbol ?? "circle.slash") : "lock.fill")
+                Image(systemName: isUnlocked ? symbol : "lock.fill")
                     .font(.system(size: 44))
-                    .foregroundStyle(unlocked ? Theme.primary : .secondary)
+                    .foregroundStyle(isUnlocked ? symbolColor : .secondary)
+                    .shadow(color: .black.opacity(symbolColor == Theme.primary ? 0 : 0.15), radius: 1)
                     .frame(height: 56)
-                Text(accessory?.name ?? "Nada")
+                Text(title)
                     .font(.body.bold())
-                if let accessory, !unlocked {
-                    Text("\(accessory.medalsRequired) medallas")
+                    .multilineTextAlignment(.center)
+                if !isUnlocked, let lockedText {
+                    Text(lockedText)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Theme.onSuccess)
+                        .accessibilityHidden(true)
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 140)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 150)
             .background(.white, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cardRadius)
-                    .stroke(selected ? Theme.success : Theme.secondaryButton, lineWidth: selected ? 4 : 2)
+                    .stroke(isSelected ? Theme.success : Theme.secondaryButton, lineWidth: isSelected ? 4 : 2)
             )
         }
         .buttonStyle(.plain)
-        .disabled(!unlocked)
-        .accessibilityLabel(accessory?.name ?? "Sin accesorio")
-        .accessibilityValue(selected ? "Puesto" : (unlocked ? "" : "Bloqueado"))
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .disabled(!isUnlocked)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Elegido" : (isUnlocked ? "" : "Bloqueado, \(lockedText ?? "")"))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
+}
+
+#Preview {
+    AvatarPickerView()
+        .environment(ProgressStore())
+        .fontDesign(.rounded)
 }

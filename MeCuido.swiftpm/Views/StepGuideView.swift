@@ -49,6 +49,9 @@ private struct StepGuideContent: View {
     @State private var successTask: Task<Void, Never>?
     @State private var showCelebration = false
     @State private var newAccessory: Accessory?
+    @State private var newStickers: [Achievement] = []
+    /// Última frase de ánimo, para no repetirla seguida.
+    @State private var cheer: String?
 
     private let speech = SpeechService.shared
 
@@ -63,9 +66,14 @@ private struct StepGuideContent: View {
     private var guide: some View {
         ScrollView {
             VStack(spacing: Theme.spacing) {
-                Text("Paso \(index + 1) de \(routine.steps.count)")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                HStack(alignment: .center, spacing: Theme.spacing) {
+                    Text("Paso \(index + 1) de \(routine.steps.count)")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 0)
+                    PetBuddy(cheer: showSuccess ? cheer : nil, trigger: doneCount)
+                }
+                .frame(maxWidth: 700)
 
                 StepPictogram(step: step, size: 260)
                     .id(step.id)
@@ -148,7 +156,8 @@ private struct StepGuideContent: View {
         }
         .fullScreenCover(isPresented: $showCelebration) {
             CelebrationView(accessory: newAccessory,
-                            after: routines.plan(for: routine).afterActivity) {
+                            after: routines.plan(for: routine).afterActivity,
+                            newStickers: newStickers) {
                 showCelebration = false
                 onExit()
             }
@@ -258,7 +267,8 @@ private struct StepGuideContent: View {
         if let next = progress.nextPendingIndex(in: routine) {
             settings.play(.stepDone)
             flashSuccess()
-            go(to: next, prefix: "¡Muy bien! Sigue: ")
+            cheer = Encouragement.pick(from: Encouragement.stepDone, avoiding: cheer)
+            go(to: next, prefix: "\(cheer ?? "¡Muy bien!") Sigue: ")
         } else if routines.plan(for: routine).reviewEnabled {
             settings.play(.stepDone)
             withAnimation(reduceMotion ? nil : .default) { showReview = true }
@@ -275,7 +285,10 @@ private struct StepGuideContent: View {
     private func finishRoutine() {
         speech.stop()
         settings.play(.routineDone)
+        let albumRoutines = routines.allRoutines
+        let before = progress.earnedAchievementIDs(for: albumRoutines)
         newAccessory = progress.finish(routine)
+        newStickers = progress.album(for: albumRoutines).filter { $0.isEarned && !before.contains($0.id) }
         showCelebration = true
     }
 
@@ -324,6 +337,33 @@ private struct EmptyRoutineView: View {
         .padding(Theme.padding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)
+    }
+}
+
+/// La mascota acompaña la guía: salta y dice una frase de ánimo al terminar cada paso.
+private struct PetBuddy: View {
+    let cheer: String?
+    let trigger: Int
+
+    @Environment(ProgressStore.self) private var progress
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let cheer {
+                Text(cheer)
+                    .font(.title3.weight(.semibold))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.white, in: Capsule())
+                    .overlay(Capsule().stroke(Theme.secondaryButton, lineWidth: 2))
+                    .transition(.opacity)
+            }
+            AvatarView(progress: progress, size: 72)
+                .symbolEffect(.bounce, value: reduceMotion ? 0 : trigger)
+        }
+        // La frase ya se dice en voz alta; VoiceOver no necesita repetirla.
+        .accessibilityHidden(true)
     }
 }
 
