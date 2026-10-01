@@ -33,6 +33,14 @@ struct SettingsView: View {
                 } footer: {
                     Text("Si se apaga la lectura automática, el botón «Escuchar de nuevo» sigue disponible.")
                 }
+
+                Section {
+                    Toggle("Sonidos de logro", isOn: $settings.soundEffects)
+                } header: {
+                    Text("Sonidos")
+                } footer: {
+                    Text("Una campanita suave al terminar cada paso y cada rutina. Nunca hay sonidos de error ni de alarma.")
+                }
             }
             .navigationTitle("Ajustes para adultos")
             .toolbar {

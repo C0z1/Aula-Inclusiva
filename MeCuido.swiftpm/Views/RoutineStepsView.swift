@@ -39,11 +39,20 @@ struct RoutineStepsView: View {
 
             Spacer()
 
-            NavigationLink(value: Route.guide(routine, startIndex: nextIndex)) {
-                Label(nextIndex == 0 ? "¡Empezar!" : "Seguir con el paso \(nextIndex + 1)",
-                      systemImage: "play.circle.fill")
+            if routine.steps.isEmpty {
+                Label("Esta rutina todavía no tiene pasos. Pídele a un adulto que los agregue.",
+                      systemImage: "square.dashed")
+                    .font(.title3.weight(.semibold))
+                    .padding(20)
+                    .frame(maxWidth: .infinity)
+                    .background(Theme.retry.opacity(0.4), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            } else {
+                NavigationLink(value: Route.guide(routine, startIndex: nextIndex)) {
+                    Label(nextIndex == 0 ? "¡Empezar!" : "Seguir con el paso \(nextIndex + 1)",
+                          systemImage: "play.circle.fill")
+                }
+                .buttonStyle(.primary)
             }
-            .buttonStyle(.primary)
         }
         .padding(Theme.padding)
         .background(Theme.background)

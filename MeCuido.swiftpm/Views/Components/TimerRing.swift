@@ -7,6 +7,9 @@ struct TimerRing: View {
     let total: Int
     let isPaused: Bool
 
+    /// El anillo crece con Dynamic Type para que el tiempo siga cabiendo dentro.
+    @ScaledMetric(relativeTo: .title2) private var diameter: CGFloat = 130
+
     private var fraction: Double {
         guard total > 0 else { return 0 }
         return Double(remaining) / Double(total)
@@ -28,10 +31,12 @@ struct TimerRing: View {
                 Text(Self.format(remaining))
                     .font(.title2.weight(.semibold))
                     .monospacedDigit()
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
             }
             .foregroundStyle(Theme.primary)
         }
-        .frame(width: 130, height: 130)
+        .frame(width: min(diameter, 220), height: min(diameter, 220))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Temporizador")
         .accessibilityValue(isPaused ? "En pausa, \(Self.spoken(remaining))" : "Quedan \(Self.spoken(remaining))")

@@ -8,6 +8,7 @@ struct CelebrationView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
+    @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 56
 
     var body: some View {
         VStack(spacing: Theme.padding) {
@@ -20,7 +21,9 @@ struct CelebrationView: View {
                 .accessibilityHidden(true)
 
             Text("¡Lo lograste!")
-                .font(.system(size: 56, weight: .bold, design: .rounded))
+                .font(.system(size: titleSize, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.5)
 
             Label("Ganaste una medalla", systemImage: "checkmark.seal.fill")
                 .font(.title2.weight(.semibold))

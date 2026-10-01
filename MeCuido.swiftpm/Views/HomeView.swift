@@ -104,12 +104,14 @@ private struct RoutineCard: View {
     let completed: Int
     let doneToday: Bool
 
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 56
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Image(systemName: routine.symbol)
-                .font(.system(size: 56))
+                .font(.system(size: iconSize))
                 .foregroundStyle(Theme.primary)
-                .frame(height: 70)
+                .frame(height: iconSize * 1.25)
             Text(routine.title)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(.primary)

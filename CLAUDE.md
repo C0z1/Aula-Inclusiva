@@ -46,13 +46,17 @@ MeCuido.swiftpm/
 │   ├── Routine.swift           Routine / RoutineStep (structs) + catálogo fijo Routine.all
 │   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
 │   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
-│   └── SettingsStore.swift     @Observable: ritmo (Pace), autoNarration, slowSpeech
-├── Services/SpeechService.swift  Singleton sobre AVSpeechSynthesizer (es-MX → es-ES)
+│   ├── SettingsStore.swift     @Observable: ritmo (Pace), autoNarration, slowSpeech, soundEffects
+│   └── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
+├── Services/
+│   ├── SpeechService.swift     AVSpeechSynthesizer (es-MX → es-ES); con VoiceOver activo, anuncio
+│   ├── SoundService.swift      Campanitas de logro generadas con AVAudioEngine (sin archivos)
+│   └── AudioSession.swift      Configura una sola vez la AVAudioSession compartida
 ├── Theme/Theme.swift           Colores, espaciado, radios, minTarget, Color(hex:)
 └── Views/
     ├── HomeView.swift          Pantalla 1: agenda + mascota + engrane de adultos; define `Route`
     ├── RoutineStepsView.swift  Pantalla 2: «Mis pasos siguientes»
-    ├── StepGuideView.swift     Pantalla 3: guía, temporizador, «¡Hecho!», celebración
+    ├── StepGuideView.swift     Pantalla 3: guía (StepGuideContent) o EmptyRoutineView si no hay pasos
     ├── CelebrationView.swift   fullScreenCover al terminar la rutina
     ├── AvatarPickerView.swift  Sheet para equipar accesorios
     ├── SettingsView.swift      Sheet de ajustes para adultos (long press 2 s en el engrane)
@@ -66,7 +70,7 @@ MeCuido.swiftpm/
 
 **Persistencia:** `UserDefaults` con claves `medals`, `equippedAccessory`, `completedSteps`
 (array de ids de paso), `lastFinished` (`[routineId: timeIntervalSince1970]`), `settings.pace`,
-`settings.autoNarration`, `settings.slowSpeech`. **No renombrar claves ni ids de rutina/paso**
+`settings.autoNarration`, `settings.slowSpeech`, `settings.soundEffects`. **No renombrar claves ni ids de rutina/paso**
 (`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
 
 ## Convenciones de código
@@ -81,6 +85,9 @@ MeCuido.swiftpm/
   con un suite aislado. Mantener ese patrón en stores nuevos.
 - Tiempo de un paso: `settings.seconds(for:)`, nunca `step.suggestedSeconds` directo.
   Narración automática solo si `settings.autoNarration`; voz lenta con `slow: settings.slowSpeech`.
+- Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
+  sonidos de logro; nunca de error, alarma o tiempo agotado.
+- Lógica con estado (temporizadores, reglas de progreso) va en modelos sin SwiftUI, no en la vista.
 - Navegación por valor con `Route`; nuevas pantallas del flujo del niño se agregan como casos de
   `Route`. Ajustes y mascota son `sheet`; la celebración es `fullScreenCover`.
 - Rutinas incluidas: en `Routine.all`, **3 pasos**, ids `"<rutina>.<n>"`, pictograma SF Symbol,
@@ -90,23 +97,14 @@ MeCuido.swiftpm/
 - Comentarios y textos en español; nombres de tipos/funciones en inglés (como el código existente).
 - Mensajes de commit: `feat:`, `fix:`, `docs:`, `refactor:` en español (como el historial).
 
-## Deuda y problemas conocidos (atender en Fase 0)
+## Deuda y problemas conocidos
 
-- `StepGuideView.init` truena si una rutina tiene 0 pasos (`steps.count - 1 == -1`). Hoy no pasa
-  con el catálogo fijo, pero sí pasará con rutinas editables.
-- Tamaños fijos que no escalan con Dynamic Type: `Pictogram(size:)`, `TimerRing` 130 pt,
-  «¡Lo lograste!» a 56 pt, íconos de tarjetas. Con texto grande, la fila `controls` de
-  `StepGuideView` (2 columnas de botones + anillo) se desborda.
-- `Package.swift` declara `.phone`, pero el layout está pensado solo para iPad. Decidir: quitar
-  iPhone o adaptar con `ViewThatFits`/`horizontalSizeClass`.
-- Con **VoiceOver activo**, `SpeechService` y VoiceOver hablan a la vez. Usar
-  `UIAccessibility.isVoiceOverRunning` y, en ese caso, `AccessibilityNotification.Announcement`.
-- `flashSuccess()` usa `DispatchQueue.main.asyncAfter`; preferir `Task` + `Task.sleep` cancelable.
-- La lógica del temporizador vive dentro de la vista (`tick`, `resetTimer`): no es testeable.
-- Accesorio «Cohete» usa `paperplane.fill` (no coincide con el nombre).
-- Sin efectos de sonido (el documento de diseño pide «sonido alegre» al completar).
+- `Package.swift` declara `.phone`, pero el diseño es para iPad (decisión pendiente, Fase 0).
+  La guía ya apila sus controles con `ViewThatFits`, pero el resto no se ha revisado en iPhone.
+- Sin pruebas automatizadas (decisión pendiente, Fase 0: paquete `MeCuidoCore` vs. proyecto Xcode).
 - El gate de adultos (long press 2 s) no basta para la categoría Niños de App Store (pide una
-  verificación que un niño no pueda pasar, p. ej. una operación aritmética escrita).
+  verificación que un niño no pueda pasar, p. ej. una operación aritmética escrita). Fase 1.
+- Los cambios de la Fase 0 no se han compilado todavía: probar en Xcode/iPad (ver la ruta).
 
 ## Ruta de desarrollo (resumen)
 

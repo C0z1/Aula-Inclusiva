@@ -26,26 +26,31 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · **(Decisión)** requiere acuerdo del 
 
 Objetivo: corregir lo que se romperá al crecer y hacer testeable la lógica central.
 
-- [ ] Proteger `StepGuideView` contra rutinas sin pasos (no navegar a la guía; mostrar mensaje amable).
-- [ ] Extraer el temporizador a un modelo `StepTimer` (`@Observable`): `total`, `remaining`,
+- [x] Proteger `StepGuideView` contra rutinas sin pasos (no navegar a la guía; mostrar mensaje amable).
+- [x] Extraer el temporizador a un modelo `StepTimer` (`@Observable`): `total`, `remaining`,
       `isPaused`, `tick()`, `reset(seconds:)`, `addTime(_:)`. La vista solo lo dibuja.
-- [ ] Reemplazar `DispatchQueue.main.asyncAfter` de `flashSuccess()` por una `Task` cancelable.
-- [ ] Dynamic Type: `@ScaledMetric` en `Pictogram`, `TimerRing`, íconos de tarjetas y el título de
+- [x] Reemplazar `DispatchQueue.main.asyncAfter` de `flashSuccess()` por una `Task` cancelable.
+- [x] Dynamic Type: `@ScaledMetric` en `Pictogram`, `TimerRing`, íconos de tarjetas y el título de
       celebración; la fila de controles de la guía pasa a `ViewThatFits` (horizontal → vertical).
-      Probar con *Tamaños de accesibilidad* al máximo.
-- [ ] VoiceOver + voz: si `UIAccessibility.isVoiceOverRunning`, no usar `AVSpeechSynthesizer`;
+      Pendiente: probar con *Tamaños de accesibilidad* al máximo.
+- [x] VoiceOver + voz: si `UIAccessibility.isVoiceOverRunning`, no usar `AVSpeechSynthesizer`;
       enviar la instrucción como anuncio de accesibilidad.
-- [ ] Efecto de sonido suave al completar un paso y al terminar la rutina (archivo propio en
-      `Resources/`, respetando el interruptor de silencio; opción para apagarlo en Ajustes).
+- [x] Efecto de sonido suave al completar un paso y al terminar la rutina, con opción para
+      apagarlo en Ajustes. Se generó con `AVAudioEngine` (`SoundService`) en lugar de un archivo
+      en `Resources/`; se puede cambiar por audio propio en la Fase 3.
 - [ ] **(Decisión)** iPhone: quitar `.phone` de `Package.swift` o adaptar el layout. Recomendado:
       quitarlo hasta la Fase 6; la experiencia está diseñada para la pantalla del iPad.
-- [ ] Renombrar o cambiar el accesorio «Cohete» (`paperplane.fill` no es un cohete).
+- [x] Renombrar o cambiar el accesorio «Cohete» (`paperplane.fill` no es un cohete). Ahora «Avión de papel»; id `cohete` intacto.
 - [ ] **(Decisión)** Pruebas: Playgrounds no ejecuta `testTarget`. Opciones:
       (a) paquete hermano `MeCuidoCore` con modelos puros y `swift test` en Mac;
       (b) migrar a proyecto Xcode en la Fase 8. Recomendado: (a), mover ahí `Routine`, `Accessory`,
       `StepTimer` y la lógica de `ProgressStore`/`SettingsStore`.
 - [ ] Pruebas mínimas: `seconds(for:)` por ritmo, `finish()` otorga medalla y desbloquea el accesorio
       correcto, `isDoneToday` en el cambio de día, `StepTimer` no baja de 0 y respeta la pausa.
+
+- [ ] **Verificar en Xcode/iPad** (los cambios se escribieron sin poder compilar): guía completa
+      de una rutina, «Más tiempo», pausa, paso anterior, campanitas, VoiceOver encendido, texto
+      al máximo en vertical y horizontal.
 
 **Aceptación:** la app no truena con datos vacíos, se usa completa con texto al máximo y con
 VoiceOver sin voces encimadas.

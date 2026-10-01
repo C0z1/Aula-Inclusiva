@@ -1,18 +1,24 @@
 import AVFoundation
+import UIKit
 
 /// Narra las instrucciones en voz alta (español de México).
+/// Si VoiceOver está activo, le pasa el texto como anuncio para que no hablen dos voces a la vez.
 final class SpeechService {
     static let shared = SpeechService()
 
     private let synthesizer = AVSpeechSynthesizer()
 
     private init() {
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+        AudioSession.configure()
     }
 
     /// - Parameter slow: voz más lenta (ajuste para adultos).
     func speak(_ text: String, slow: Bool = false) {
         stop()
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: text)
+            return
+        }
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "es-MX") ?? AVSpeechSynthesisVoice(language: "es-ES")
         // Siempre un poco más lento que lo normal para facilitar la comprensión.

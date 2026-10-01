@@ -5,6 +5,32 @@ import SwiftUI
 struct StepGuideView: View {
     let routine: Routine
     let onExit: () -> Void
+    private let startIndex: Int
+
+    static let doItYourself = "¡Ahora hazlo tú y presiona el botón cuando termines!"
+
+    init(routine: Routine, startIndex: Int, onExit: @escaping () -> Void) {
+        self.routine = routine
+        self.onExit = onExit
+        self.startIndex = min(max(startIndex, 0), max(routine.steps.count - 1, 0))
+    }
+
+    var body: some View {
+        // Una rutina sin pasos (posible con rutinas editables) no debe tronar la guía.
+        if routine.steps.isEmpty {
+            EmptyRoutineView(onExit: onExit)
+                .navigationTitle(routine.title)
+                .navigationBarTitleDisplayMode(.inline)
+        } else {
+            StepGuideContent(routine: routine, startIndex: startIndex, onExit: onExit)
+        }
+    }
+}
+
+/// Guía de una rutina con al menos un paso.
+private struct StepGuideContent: View {
+    let routine: Routine
+    let onExit: () -> Void
 
     @Environment(ProgressStore.self) private var progress
     @Environment(SettingsStore.self) private var settings
@@ -12,23 +38,20 @@ struct StepGuideView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var index: Int
-    @State private var total = 0
-    @State private var remaining = 0
+    @State private var timer = StepTimer()
     @State private var started = false
-    @State private var isPaused = false
     @State private var doneCount = 0
     @State private var showSuccess = false
+    @State private var successTask: Task<Void, Never>?
     @State private var showCelebration = false
     @State private var newAccessory: Accessory?
 
     private let speech = SpeechService.shared
 
-    static let doItYourself = "¡Ahora hazlo tú y presiona el botón cuando termines!"
-
     init(routine: Routine, startIndex: Int, onExit: @escaping () -> Void) {
         self.routine = routine
         self.onExit = onExit
-        _index = State(initialValue: min(max(startIndex, 0), routine.steps.count - 1))
+        _index = State(initialValue: startIndex)
     }
 
     private var step: RoutineStep { routine.steps[index] }
@@ -53,14 +76,14 @@ struct StepGuideView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 600)
 
-                Label(Self.doItYourself, systemImage: "figure.wave")
+                Label(StepGuideView.doItYourself, systemImage: "figure.wave")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(Theme.primary)
                     .multilineTextAlignment(.center)
 
                 controls
 
-                if remaining == 0 {
+                if timer.isFinished {
                     Label("Tómate tu tiempo. Cuando termines, presiona ¡Hecho!",
                           systemImage: "tortoise.fill")
                         .font(.body.bold())
@@ -97,10 +120,13 @@ struct StepGuideView: View {
             // El tiempo depende del ritmo elegido en Ajustes, que solo está disponible aquí.
             guard !started else { return }
             started = true
-            resetTimer()
+            timer.reset(seconds: settings.seconds(for: step))
             if settings.autoNarration { speakStep() }
         }
-        .onDisappear { speech.stop() }
+        .onDisappear {
+            speech.stop()
+            successTask?.cancel()
+        }
         .onChange(of: scenePhase) { _, phase in
             // Si la app pasa a segundo plano, el temporizador se detiene (ver tick) y la voz calla.
             if phase != .active { speech.stop() }
@@ -113,47 +139,73 @@ struct StepGuideView: View {
         }
     }
 
-    private var controls: some View {
-        HStack(alignment: .center, spacing: Theme.spacing) {
-            VStack(spacing: 16) {
-                Button {
-                    speakStep()
-                } label: {
-                    Label("Escuchar de nuevo", systemImage: "speaker.wave.2.fill")
-                }
-                .buttonStyle(.secondary)
+    // MARK: - Controles
 
-                if index > 0 {
-                    Button {
-                        go(to: index - 1)
-                    } label: {
-                        Label("Paso anterior", systemImage: "arrow.uturn.backward")
-                    }
-                    .buttonStyle(.secondary)
-                }
+    /// En horizontal si cabe; con texto grande o pantalla angosta, se apilan.
+    private var controls: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: Theme.spacing) {
+                VStack(spacing: 16) { listenButton; previousButton }
+                timerRing
+                VStack(spacing: 16) { pauseButton; moreTimeButton }
             }
 
-            TimerRing(remaining: remaining, total: total, isPaused: isPaused)
-
-            VStack(spacing: 16) {
-                Button {
-                    isPaused.toggle()
-                } label: {
-                    Label(isPaused ? "Seguir" : "Pausa",
-                          systemImage: isPaused ? "play.fill" : "pause.fill")
+            VStack(spacing: Theme.spacing) {
+                timerRing
+                VStack(spacing: 16) {
+                    listenButton
+                    pauseButton
+                    moreTimeButton
+                    previousButton
                 }
-                .buttonStyle(.secondary)
-
-                Button {
-                    total += 30
-                    remaining += 30
-                } label: {
-                    Label("Más tiempo", systemImage: "plus.circle.fill")
-                }
-                .buttonStyle(.secondary)
-                .accessibilityHint("Agrega 30 segundos")
+                .frame(maxWidth: 500)
             }
         }
+    }
+
+    private var timerRing: some View {
+        TimerRing(remaining: timer.remaining, total: timer.total, isPaused: timer.isPaused)
+    }
+
+    private var listenButton: some View {
+        Button {
+            speakStep()
+        } label: {
+            Label("Escuchar de nuevo", systemImage: "speaker.wave.2.fill")
+        }
+        .buttonStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private var previousButton: some View {
+        if index > 0 {
+            Button {
+                go(to: index - 1)
+            } label: {
+                Label("Paso anterior", systemImage: "arrow.uturn.backward")
+            }
+            .buttonStyle(.secondary)
+        }
+    }
+
+    private var pauseButton: some View {
+        Button {
+            timer.isPaused.toggle()
+        } label: {
+            Label(timer.isPaused ? "Seguir" : "Pausa",
+                  systemImage: timer.isPaused ? "play.fill" : "pause.fill")
+        }
+        .buttonStyle(.secondary)
+    }
+
+    private var moreTimeButton: some View {
+        Button {
+            timer.addTime()
+        } label: {
+            Label("Más tiempo", systemImage: "plus.circle.fill")
+        }
+        .buttonStyle(.secondary)
+        .accessibilityHint("Agrega \(StepTimer.extraTime) segundos")
     }
 
     // MARK: - Acciones
@@ -162,22 +214,13 @@ struct StepGuideView: View {
     private func runTimer() async {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(1))
-            tick()
+            guard !showCelebration, scenePhase == .active else { continue }
+            withAnimation { timer.tick() }
         }
     }
 
-    private func tick() {
-        guard !isPaused, !showCelebration, scenePhase == .active, remaining > 0 else { return }
-        withAnimation { remaining -= 1 }
-    }
-
-    private func resetTimer() {
-        total = settings.seconds(for: step)
-        remaining = total
-    }
-
     private func speakStep(prefix: String = "") {
-        speech.speak("\(prefix)\(step.title). \(step.instruction) \(Self.doItYourself)",
+        speech.speak("\(prefix)\(step.title). \(step.instruction) \(StepGuideView.doItYourself)",
                      slow: settings.slowSpeech)
     }
 
@@ -185,8 +228,7 @@ struct StepGuideView: View {
         withAnimation(reduceMotion ? nil : .spring) {
             index = newIndex
         }
-        resetTimer()
-        isPaused = false
+        timer.reset(seconds: settings.seconds(for: step))
         if settings.autoNarration {
             speakStep(prefix: prefix)
         }
@@ -195,22 +237,58 @@ struct StepGuideView: View {
     private func markDone() {
         progress.complete(step)
         doneCount += 1
-        flashSuccess()
 
         if let next = progress.nextPendingIndex(in: routine) {
+            settings.play(.stepDone)
+            flashSuccess()
             go(to: next, prefix: "¡Muy bien! Sigue: ")
         } else {
             speech.stop()
+            settings.play(.routineDone)
             newAccessory = progress.finish(routine)
             showCelebration = true
         }
     }
 
     private func flashSuccess() {
+        successTask?.cancel()
         withAnimation { showSuccess = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        successTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
             withAnimation { showSuccess = false }
         }
+    }
+}
+
+/// Se muestra si una rutina no tiene pasos todavía.
+private struct EmptyRoutineView: View {
+    let onExit: () -> Void
+
+    var body: some View {
+        VStack(spacing: Theme.padding) {
+            Spacer()
+            Image(systemName: "square.dashed")
+                .font(.system(size: 80))
+                .foregroundStyle(Theme.retry)
+                .accessibilityHidden(true)
+            Text("Esta rutina todavía no tiene pasos")
+                .font(.title2.weight(.semibold))
+                .multilineTextAlignment(.center)
+            Text("Pídele a un adulto que los agregue en los ajustes.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Spacer()
+            Button(action: onExit) {
+                Label("Volver al inicio", systemImage: "house.fill")
+            }
+            .buttonStyle(.primary)
+            .frame(maxWidth: 500)
+        }
+        .padding(Theme.padding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.background)
     }
 }
 

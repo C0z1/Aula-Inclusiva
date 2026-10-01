@@ -42,20 +42,31 @@ final class SettingsStore {
         didSet { defaults.set(slowSpeech, forKey: Self.slowSpeechKey) }
     }
 
+    /// Campanita suave al terminar un paso o una rutina.
+    var soundEffects: Bool {
+        didSet { defaults.set(soundEffects, forKey: Self.soundEffectsKey) }
+    }
+
     private let defaults: UserDefaults
     private static let paceKey = "settings.pace"
     private static let autoNarrationKey = "settings.autoNarration"
     private static let slowSpeechKey = "settings.slowSpeech"
+    private static let soundEffectsKey = "settings.soundEffects"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.pace = defaults.string(forKey: Self.paceKey).flatMap(Pace.init(rawValue:)) ?? .normal
         self.autoNarration = defaults.object(forKey: Self.autoNarrationKey) as? Bool ?? true
         self.slowSpeech = defaults.bool(forKey: Self.slowSpeechKey)
+        self.soundEffects = defaults.object(forKey: Self.soundEffectsKey) as? Bool ?? true
     }
 
     /// Tiempo sugerido de un paso ajustado al ritmo elegido.
     func seconds(for step: RoutineStep) -> Int {
         Int((Double(step.suggestedSeconds) * pace.multiplier).rounded())
+    }
+
+    func play(_ cue: SoundService.Cue) {
+        if soundEffects { SoundService.shared.play(cue) }
     }
 }

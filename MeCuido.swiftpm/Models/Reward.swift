@@ -13,6 +13,7 @@ struct Accessory: Identifiable, Hashable {
         Accessory(id: "gorra", name: "Gorra", symbol: "graduationcap.fill", medalsRequired: 3),
         Accessory(id: "corazon", name: "Corazón", symbol: "heart.fill", medalsRequired: 5),
         Accessory(id: "corona", name: "Corona", symbol: "crown.fill", medalsRequired: 8),
-        Accessory(id: "cohete", name: "Cohete", symbol: "paperplane.fill", medalsRequired: 12)
+        // El id se conserva para no perder el accesorio que ya tenga puesto el niño.
+        Accessory(id: "cohete", name: "Avión de papel", symbol: "paperplane.fill", medalsRequired: 12)
     ]
 }
