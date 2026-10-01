@@ -32,9 +32,16 @@ castigo y recompensas para su mascota. Proyecto de la materia **Aula Inclusiva**
   4.4+** en iPad. No hay `.xcodeproj`; no crear uno sin acordarlo.
 - `Package.swift` es generado por Playgrounds: editar solo campos conocidos (versión, orientaciones,
   `resources`, capacidades) y conservar el formato.
-- **Este equipo corre Windows: no se puede compilar ni ejecutar aquí.** Al cambiar Swift, revisar
-  con cuidado tipos, `import`s y APIs de iOS 17, y avisar qué debe probarse en Mac/iPad.
-- No hay tests automatizados todavía (Playgrounds no ejecuta `testTarget`). Ver Fase 0 de la ruta.
+- **Pruebas de modelos:** `Package.swift` de la raíz (`MeCuidoCore`) compila `MeCuido.swiftpm/Models`
+  y corre `Tests/MeCuidoCoreTests` (XCTest). En Mac: `swift test`. En Windows, con Docker Desktop
+  encendido, desde Git Bash:
+  `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD:/src" swift:5.10-jammy bash -c "cp -r /src /tmp/w && cd /tmp/w && rm -rf .build && swift test"`.
+  GitHub Actions las corre en cada PR y push a `main`.
+- Por eso `Models/` **solo puede importar Foundation y Observation** (nada de SwiftUI, UIKit ni
+  AVFoundation); lo que dependa de iOS va en `Services/` o `Views/` (p. ej. `SettingsStore.play`
+  vive en `SoundService.swift`). Toda lógica nueva de modelo lleva su prueba.
+- **Este equipo corre Windows:** las vistas (SwiftUI) no se pueden compilar aquí. Revisar con cuidado
+  tipos y APIs de iOS 17 y avisar qué debe probarse en Xcode/iPad.
 - Las capturas de `docs/screenshots/` son **maquetas**, no capturas reales del simulador.
 
 ## Arquitectura actual
@@ -99,12 +106,10 @@ MeCuido.swiftpm/
 
 ## Deuda y problemas conocidos
 
-- `Package.swift` declara `.phone`, pero el diseño es para iPad (decisión pendiente, Fase 0).
-  La guía ya apila sus controles con `ViewThatFits`, pero el resto no se ha revisado en iPhone.
-- Sin pruebas automatizadas (decisión pendiente, Fase 0: paquete `MeCuidoCore` vs. proyecto Xcode).
+- App solo para iPad (`.pad` en `MeCuido.swiftpm/Package.swift`); iPhone se reevalúa en la Fase 6.
 - El gate de adultos (long press 2 s) no basta para la categoría Niños de App Store (pide una
   verificación que un niño no pueda pasar, p. ej. una operación aritmética escrita). Fase 1.
-- Los cambios de la Fase 0 no se han compilado todavía: probar en Xcode/iPad (ver la ruta).
+- Las vistas de la Fase 0 no se han compilado en Xcode todavía (los modelos sí, con `swift test`).
 
 ## Ruta de desarrollo (resumen)
 
@@ -124,5 +129,5 @@ cada fase debe dejar la app usable de principio a fin.
 | 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
 | — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
 
-**Fase en curso:** 0. Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
+**Fase en curso:** 1 (la Fase 0 solo espera la verificación en Xcode/iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
 checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.

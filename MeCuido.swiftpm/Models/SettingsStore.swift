@@ -65,8 +65,4 @@ final class SettingsStore {
     func seconds(for step: RoutineStep) -> Int {
         Int((Double(step.suggestedSeconds) * pace.multiplier).rounded())
     }
-
-    func play(_ cue: SoundService.Cue) {
-        if soundEffects { SoundService.shared.play(cue) }
-    }
 }

@@ -7,7 +7,7 @@ hagan sus rutinas diarias por sí mismos.**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://www.swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iPadOS_17-2A75D3?style=for-the-badge&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
-[![Versión](https://img.shields.io/badge/versión-0.2-06D6A0?style=for-the-badge)](#-avance-actual)
+[![Versión](https://img.shields.io/badge/versión-0.2.1-06D6A0?style=for-the-badge)](#-avance-actual)
 [![Accesibilidad](https://img.shields.io/badge/accesibilidad-primero-053B2C?style=for-the-badge)](#-accesibilidad)
 
 *Proyecto de la materia **Aula Inclusiva** · Design Thinking + Apple Human Interface Guidelines*
@@ -86,14 +86,16 @@ flowchart LR
 
 ## ✨ Avance actual
 
-**Versión 0.2**
+**Versión 0.2.1**
 
 - [x] Agenda del día con mascota, medallas y rutinas «¡Hecha hoy!»
 - [x] Secuencia de pasos con progreso visual
 - [x] Guía con narración en español de México, temporizador y retroalimentación háptica
-- [x] Medallas y 5 accesorios desbloqueables (estrella, gorra, corazón, corona, cohete)
+- [x] Medallas y 5 accesorios desbloqueables (estrella, gorra, corazón, corona, avión de papel)
 - [x] El progreso se guarda: si la app se cierra, sigue donde se quedó
 - [x] Ajustes para adultos: ritmo *Normal / Con calma / Con mucha calma* y opciones de voz
+- [x] Campanitas de logro, soporte de texto grande y convivencia con VoiceOver
+- [x] Pruebas automáticas de la lógica (`swift test`)
 - [ ] Pictogramas y animaciones ilustradas propias (hoy usa SF Symbols)
 - [ ] Editar rutinas y pasos desde los ajustes para adultos
 - [ ] Prueba con niños del rango de edad
@@ -134,7 +136,9 @@ El proyecto es un paquete de app de Swift Playgrounds: [`MeCuido.swiftpm`](MeCui
 | 💻 **Mac** | Abre la carpeta `MeCuido.swiftpm` con **Xcode 15+** y ejecuta en un simulador de iPad |
 | 📱 **iPad** | Copia la carpeta `MeCuido.swiftpm` a **Swift Playgrounds 4.4+** y toca ▶︎ |
 
-Requiere **iOS / iPadOS 17**.
+Requiere **iPadOS 17**.
+
+**Pruebas de la lógica:** desde la raíz del repositorio, `swift test` (Mac o Linux).
 
 <details>
 <summary><b>🗂️ Estructura del proyecto</b></summary>
@@ -143,10 +147,12 @@ Requiere **iOS / iPadOS 17**.
 MeCuido.swiftpm/
 ├── Package.swift
 ├── App/MeCuidoApp.swift
-├── Models/          Routine, Reward (accesorios), ProgressStore, SettingsStore
-├── Services/        SpeechService (texto a voz es-MX)
+├── Models/          Routine, Reward (accesorios), ProgressStore, SettingsStore, StepTimer
+├── Services/        SpeechService (voz es-MX), SoundService (campanitas), AudioSession
 ├── Theme/           Colores, espaciado y formas del documento de diseño
 └── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker, Settings + Components
+Package.swift        MeCuidoCore: compila Models/ para las pruebas
+Tests/               Pruebas de la lógica (XCTest)
 ```
 
 </details>

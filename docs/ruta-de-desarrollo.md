@@ -38,14 +38,13 @@ Objetivo: corregir lo que se romperá al crecer y hacer testeable la lógica cen
 - [x] Efecto de sonido suave al completar un paso y al terminar la rutina, con opción para
       apagarlo en Ajustes. Se generó con `AVAudioEngine` (`SoundService`) en lugar de un archivo
       en `Resources/`; se puede cambiar por audio propio en la Fase 3.
-- [ ] **(Decisión)** iPhone: quitar `.phone` de `Package.swift` o adaptar el layout. Recomendado:
-      quitarlo hasta la Fase 6; la experiencia está diseñada para la pantalla del iPad.
+- [x] **(Decidido)** iPhone: se quitó `.phone` de `Package.swift`; la app es solo para iPad
+      hasta revisarlo en la Fase 6.
 - [x] Renombrar o cambiar el accesorio «Cohete» (`paperplane.fill` no es un cohete). Ahora «Avión de papel»; id `cohete` intacto.
-- [ ] **(Decisión)** Pruebas: Playgrounds no ejecuta `testTarget`. Opciones:
-      (a) paquete hermano `MeCuidoCore` con modelos puros y `swift test` en Mac;
-      (b) migrar a proyecto Xcode en la Fase 8. Recomendado: (a), mover ahí `Routine`, `Accessory`,
-      `StepTimer` y la lógica de `ProgressStore`/`SettingsStore`.
-- [ ] Pruebas mínimas: `seconds(for:)` por ritmo, `finish()` otorga medalla y desbloquea el accesorio
+- [x] **(Decidido)** Pruebas: `Package.swift` en la raíz (`MeCuidoCore`) compila las mismas fuentes
+      de `MeCuido.swiftpm/Models` sin copiarlas; pruebas en `Tests/MeCuidoCoreTests`. Corre en Mac,
+      Linux, Docker y GitHub Actions (`.github/workflows/pruebas.yml`).
+- [x] Pruebas mínimas: `seconds(for:)` por ritmo, `finish()` otorga medalla y desbloquea el accesorio
       correcto, `isDoneToday` en el cambio de día, `StepTimer` no baja de 0 y respeta la pausa.
 
 - [ ] **Verificar en Xcode/iPad** (los cambios se escribieron sin poder compilar): guía completa

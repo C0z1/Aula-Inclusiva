@@ -77,3 +77,10 @@ final class SoundService {
         return buffer
     }
 }
+
+extension SettingsStore {
+    /// Reproduce el sonido solo si el adulto dejó encendidos los «Sonidos de logro».
+    func play(_ cue: SoundService.Cue) {
+        if soundEffects { SoundService.shared.play(cue) }
+    }
+}
