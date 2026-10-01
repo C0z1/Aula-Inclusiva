@@ -60,18 +60,23 @@ VoiceOver sin voces encimadas.
 
 Objetivo: que cada familia o maestra adapte las rutinas a la casa o al aula del niño.
 
-- [ ] Migrar el modelo a **SwiftData** (`@Model RoutineEntity`, `StepEntity` con `order`).
-      Sembrar desde `Routine.all` en el primer arranque **conservando los ids** actuales.
-- [ ] Migrar `completedSteps` y `lastFinished` de `UserDefaults` sin perder progreso; borrar las
-      claves viejas solo después de migrar con éxito.
-- [ ] Editor en Ajustes: crear, duplicar, archivar rutinas; agregar, reordenar (botones ↑/↓ además
-      de arrastrar) y borrar pasos; elegir pictograma de una galería curada de SF Symbols; editar
-      título, instrucción y tiempo sugerido; vista previa «Escuchar» de la instrucción.
-- [ ] Rutinas incluidas: se pueden ocultar y restaurar, no borrar.
-- [ ] **(Decisión)** Número de pasos: incluidas = 3; personalizadas = 2 a 5 (memoria de trabajo).
-- [ ] Gate de adultos robusto: tras el long press, una operación escrita («¿Cuánto es 7 × 8?») con
-      teclado numérico. Cumple la guía de *parental gate* de App Store para apps de niños.
-- [ ] Respaldo: exportar/importar rutinas como archivo (`ShareLink` + `fileImporter`), sin red.
+- [x] **(Decidido)** Persistencia en **JSON local** (`RoutineStore`, `rutinas.json` en Application
+      Support) en lugar de SwiftData: se prueba con `swift test` en Linux/CI, el mismo formato sirve
+      de respaldo y **no hace falta migrar el progreso** (sigue en `UserDefaults`, ligado a los mismos
+      ids de paso). Las incluidas viven en el código; en el archivo solo van las personalizadas y las ocultas.
+- [x] Editor en Ajustes → Rutinas: crear, duplicar, ocultar y borrar rutinas; agregar, reordenar
+      (Editar + arrastrar) y borrar pasos; galería curada de SF Symbols con nombres en español para
+      VoiceOver; título, instrucción, tiempo sugerido y «Escuchar cómo se oye». Guardado automático.
+- [x] Rutinas incluidas: se pueden ocultar y duplicar, no editar ni borrar.
+- [x] **(Decidido)** Número de pasos: incluidas = 3; personalizadas = 1 a 5, recomendado 3. Una
+      rutina sin pasos no aparece en la agenda del niño.
+- [x] Gate de adultos: tras el long press, una multiplicación (12–29 × 3–9) con teclado propio de
+      teclas de 96×72 pt. Si falla, pregunta nueva, sin rojo.
+- [x] Respaldo: exportar (`fileExporter`) e importar (`fileImporter`) un JSON, sin red. Importar
+      reemplaza por id, nunca toca las incluidas y rechaza respaldos de versiones más nuevas.
+- [ ] Reordenar pasos con botones ↑/↓ además de arrastrar (pendiente; hoy solo Editar + arrastrar).
+- [ ] **Verificar en iPad**: crear «Prepararme para dormir» de 4 pasos, reordenar, ocultar una
+      incluida, exportar e importar en otro iPad, gate con VoiceOver.
 
 **Aceptación:** un adulto crea «Prepararme para dormir» de 4 pasos en menos de 3 minutos y el niño
 la completa sin ayuda.

@@ -40,8 +40,9 @@ castigo y recompensas para su mascota. Proyecto de la materia **Aula Inclusiva**
 - Por eso `Models/` **solo puede importar Foundation y Observation** (nada de SwiftUI, UIKit ni
   AVFoundation); lo que dependa de iOS va en `Services/` o `Views/` (p. ej. `SettingsStore.play`
   vive en `SoundService.swift`). Toda lógica nueva de modelo lleva su prueba.
-- **Este equipo corre Windows:** las vistas (SwiftUI) no se pueden compilar aquí. Revisar con cuidado
-  tipos y APIs de iOS 17 y avisar qué debe probarse en Xcode/iPad.
+- **Este equipo corre Windows:** las vistas (SwiftUI) no se pueden compilar aquí. El CI
+  (`.github/workflows/pruebas.yml`) revisa la sintaxis de toda la app, corre `swift test` y compila
+  la app con `xcodebuild` en macOS en cada push: revisar que pase antes de unir a `main`.
 - Las capturas de `docs/screenshots/` son **maquetas**, no capturas reales del simulador.
 
 ## Arquitectura actual
@@ -50,7 +51,9 @@ castigo y recompensas para su mascota. Proyecto de la materia **Aula Inclusiva**
 MeCuido.swiftpm/
 ├── App/MeCuidoApp.swift        Raíz: crea los stores, .fontDesign(.rounded), fuerza modo claro
 ├── Models/
-│   ├── Routine.swift           Routine / RoutineStep (structs) + catálogo fijo Routine.all
+│   ├── Routine.swift           Routine / RoutineStep (structs Codable) + rutinas incluidas Routine.all
+│   ├── RoutineStore.swift      @Observable: rutinas personalizadas + ocultas (JSON), respaldo
+│   ├── AdultGate.swift         Pregunta de multiplicación para entrar a Ajustes
 │   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
 │   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
 │   ├── SettingsStore.swift     @Observable: ritmo (Pace), autoNarration, slowSpeech, soundEffects
@@ -66,7 +69,10 @@ MeCuido.swiftpm/
     ├── StepGuideView.swift     Pantalla 3: guía (StepGuideContent) o EmptyRoutineView si no hay pasos
     ├── CelebrationView.swift   fullScreenCover al terminar la rutina
     ├── AvatarPickerView.swift  Sheet para equipar accesorios
-    ├── SettingsView.swift      Sheet de ajustes para adultos (long press 2 s en el engrane)
+    ├── AdultGateView.swift     Pregunta + teclado grande antes de los ajustes
+    ├── SettingsView.swift      Sheet de adultos (long press 2 s → AdultGateView → SettingsForm)
+    ├── Admin/                  RoutinesAdminView, RoutineEditorView, StepEditorView,
+    │                           SymbolPickerView (SymbolCatalog), RoutinesBackupDocument
     └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram, TimerRing
 ```
 
@@ -79,6 +85,9 @@ MeCuido.swiftpm/
 (array de ids de paso), `lastFinished` (`[routineId: timeIntervalSince1970]`), `settings.pace`,
 `settings.autoNarration`, `settings.slowSpeech`, `settings.soundEffects`. **No renombrar claves ni ids de rutina/paso**
 (`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
+Rutinas personalizadas y ocultas: `Application Support/rutinas.json` (`RoutineStore.Snapshot`,
+con `version`; subirla si cambia el formato y mantener la lectura de la anterior). Ids
+personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 
 ## Convenciones de código
 
@@ -86,10 +95,12 @@ MeCuido.swiftpm/
 - Texto sobre `Theme.success` usa `Theme.onSuccess` (el blanco no alcanza contraste AA).
 - Tipografía: estilos del sistema (`.title2`, `.body.bold()`…) para respetar Dynamic Type. Si hace
   falta un tamaño fijo (pictogramas, íconos grandes), usar `@ScaledMetric`.
-- Estado global: `ProgressStore` y `SettingsStore` (`@Observable`, `final class`), inyectados con
+- Estado global: `ProgressStore`, `SettingsStore` y `RoutineStore` (`@Observable`, `final class`), inyectados con
   `.environment(...)` y leídos con `@Environment(Tipo.self)`. Para bindings: `@Bindable var x = x`.
-- Los stores reciben `UserDefaults` por inicializador (`defaults: .standard`) para poder probarlos
-  con un suite aislado. Mantener ese patrón en stores nuevos.
+- Los stores reciben su almacenamiento por inicializador (`defaults: .standard`, `fileURL:`) para
+  probarlos aislados. Mantener ese patrón en stores nuevos.
+- Las rutinas del niño salen de `routines.visibleRoutines` (nunca de `Routine.all` directo en vistas
+  del niño). Cambios a rutinas solo por `RoutineStore` (`save`, `duplicate`, `delete`, `setHidden`).
 - Tiempo de un paso: `settings.seconds(for:)`, nunca `step.suggestedSeconds` directo.
   Narración automática solo si `settings.autoNarration`; voz lenta con `slow: settings.slowSpeech`.
 - Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
@@ -98,18 +109,18 @@ MeCuido.swiftpm/
 - Navegación por valor con `Route`; nuevas pantallas del flujo del niño se agregan como casos de
   `Route`. Ajustes y mascota son `sheet`; la celebración es `fullScreenCover`.
 - Rutinas incluidas: en `Routine.all`, **3 pasos**, ids `"<rutina>.<n>"`, pictograma SF Symbol,
-  `instruction` de una o dos frases cortas para narrar.
-- Cada vista nueva lleva `#Preview` con `.environment(ProgressStore())`, `.environment(SettingsStore())`
-  y `.fontDesign(.rounded)`.
+  `instruction` de una o dos frases cortas para narrar. Personalizadas: 1 a `RoutineStore.maxSteps` (5).
+- Pictogramas elegibles por adultos: agregarlos a `SymbolCatalog` con su nombre en español.
+- Cada vista nueva lleva `#Preview` con los stores que use (`.environment(ProgressStore())`,
+  `SettingsStore()`, `RoutineStore()`) y `.fontDesign(.rounded)`.
 - Comentarios y textos en español; nombres de tipos/funciones en inglés (como el código existente).
 - Mensajes de commit: `feat:`, `fix:`, `docs:`, `refactor:` en español (como el historial).
 
 ## Deuda y problemas conocidos
 
 - App solo para iPad (`.pad` en `MeCuido.swiftpm/Package.swift`); iPhone se reevalúa en la Fase 6.
-- El gate de adultos (long press 2 s) no basta para la categoría Niños de App Store (pide una
-  verificación que un niño no pueda pasar, p. ej. una operación aritmética escrita). Fase 1.
-- Las vistas de la Fase 0 no se han compilado en Xcode todavía (los modelos sí, con `swift test`).
+- Las vistas no se han probado en un iPad real; el CI solo las compila (job «compilar app»).
+- Al borrar una rutina personalizada quedan ids de pasos huérfanos en `completedSteps` (inofensivo).
 
 ## Ruta de desarrollo (resumen)
 
@@ -119,7 +130,7 @@ cada fase debe dejar la app usable de principio a fin.
 | Fase | Versión | Objetivo |
 | :-- | :-- | :-- |
 | 0 | 0.2.1 | Estabilizar: deuda de arriba, Dynamic Type, VoiceOver + TTS, `StepTimer` testeable |
-| 1 | 0.3 | Rutinas editables por adultos (SwiftData), gate de adultos robusto |
+| 1 | 0.3 | Rutinas editables por adultos (JSON local), gate de adultos robusto |
 | 2 | 0.4 | Agenda real: momentos del día, «Ahora toca», tablero *Primero → Después* |
 | 3 | 0.5 | Contenido propio: pictogramas ilustrados, fotos de los objetos reales, voz grabada, sonidos |
 | 4 | 0.6 | Mascota y motivación sin castigo: nombre, reacciones, álbum de logros acumulativo |
@@ -129,5 +140,5 @@ cada fase debe dejar la app usable de principio a fin.
 | 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
 | — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
 
-**Fase en curso:** 1 (la Fase 0 solo espera la verificación en Xcode/iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
+**Fase en curso:** 2 (Fases 0 y 1 esperan la verificación en iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
 checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.

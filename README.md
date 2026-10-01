@@ -7,7 +7,7 @@ hagan sus rutinas diarias por sí mismos.**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://www.swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iPadOS_17-2A75D3?style=for-the-badge&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
-[![Versión](https://img.shields.io/badge/versión-0.2.1-06D6A0?style=for-the-badge)](#-avance-actual)
+[![Versión](https://img.shields.io/badge/versión-0.3-06D6A0?style=for-the-badge)](#-avance-actual)
 [![Accesibilidad](https://img.shields.io/badge/accesibilidad-primero-053B2C?style=for-the-badge)](#-accesibilidad)
 
 *Proyecto de la materia **Aula Inclusiva** · Design Thinking + Apple Human Interface Guidelines*
@@ -81,12 +81,12 @@ flowchart LR
 | **Ajustes para adultos** | Ritmo del temporizador, lectura automática y voz más lenta |
 
 > [!TIP]
-> **Para adultos:** mantén presionado el ⚙️ engrane del inicio **2 segundos** para abrir los ajustes.
-> Así el niño no los cambia por accidente.
+> **Para adultos:** mantén presionado el ⚙️ engrane del inicio **2 segundos** y responde la
+> multiplicación para abrir los ajustes. Ahí, en **Rutinas**, puedes crear las tuyas.
 
 ## ✨ Avance actual
 
-**Versión 0.2.1**
+**Versión 0.3**
 
 - [x] Agenda del día con mascota, medallas y rutinas «¡Hecha hoy!»
 - [x] Secuencia de pasos con progreso visual
@@ -96,8 +96,9 @@ flowchart LR
 - [x] Ajustes para adultos: ritmo *Normal / Con calma / Con mucha calma* y opciones de voz
 - [x] Campanitas de logro, soporte de texto grande y convivencia con VoiceOver
 - [x] Pruebas automáticas de la lógica (`swift test`)
+- [x] Rutinas propias: los adultos crean, duplican, ocultan y respaldan rutinas de 1 a 5 pasos
+- [x] Ajustes protegidos con una pregunta para adultos
 - [ ] Pictogramas y animaciones ilustradas propias (hoy usa SF Symbols)
-- [ ] Editar rutinas y pasos desde los ajustes para adultos
 - [ ] Prueba con niños del rango de edad
 
 > **Criterio de éxito de la primera versión:** que un niño complete una rutina de 3 pasos
@@ -147,10 +148,11 @@ Requiere **iPadOS 17**.
 MeCuido.swiftpm/
 ├── Package.swift
 ├── App/MeCuidoApp.swift
-├── Models/          Routine, Reward (accesorios), ProgressStore, SettingsStore, StepTimer
+├── Models/          Routine, RoutineStore, Reward, ProgressStore, SettingsStore, StepTimer, AdultGate
 ├── Services/        SpeechService (voz es-MX), SoundService (campanitas), AudioSession
 ├── Theme/           Colores, espaciado y formas del documento de diseño
-└── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker, Settings + Components
+└── Views/           Home, RoutineSteps, StepGuide, Celebration, AvatarPicker, Settings, AdultGate
+                     + Admin/ (editor de rutinas) + Components
 Package.swift        MeCuidoCore: compila Models/ para las pruebas
 Tests/               Pruebas de la lógica (XCTest)
 ```

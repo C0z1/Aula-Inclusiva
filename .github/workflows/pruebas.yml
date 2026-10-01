@@ -21,13 +21,10 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Esquemas disponibles
-        working-directory: MeCuido.swiftpm
-        run: xcodebuild -list
       - name: Compilar para el simulador de iPad
         working-directory: MeCuido.swiftpm
+        # Los errores se publican como anotaciones para verlos sin acceso a los logs.
         run: |
-          xcodebuild build \
-            -scheme "Me Cuido" \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO
+          set -o pipefail
+          xcodebuild -list 2>&1 | tee list.log || { tail -20 list.log | sed 's/^/::error::/'; exit 1; }
+          xcodebuild build             -scheme "Me Cuido"             -destination 'generic/platform=iOS Simulator'             CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log             || { grep -E "error:|fatal" build.log | sort -u | head -40 | sed 's/^/::error::/'; tail -15 build.log | sed 's/^/::warning::/'; exit 1; }
