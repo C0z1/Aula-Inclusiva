@@ -1,22 +1,130 @@
 # CLAUDE.md — Me Cuido, Me Organizo
 
-App SwiftUI para iPad (iOS 17+), paquete Swift Playgrounds en `MeCuido.swiftpm/`.
-La fuente de verdad del producto es `docs/documento-de-diseno.md`.
+App SwiftUI para iPad (iPadOS 17+) que guía a niños y niñas de 8 a 12 años con TDA y retos
+motrices en rutinas diarias (organizarse y cuidarse) con pictogramas, voz, temporizador sin
+castigo y recompensas para su mascota. Proyecto de la materia **Aula Inclusiva**.
+
+- Producto (fuente de verdad del *qué* y el *por qué*): `docs/documento-de-diseno.md`
+- Ruta de desarrollo detallada (fases, criterios de aceptación): `docs/ruta-de-desarrollo.md`
+- Versión actual: **0.2** (`displayVersion` / `bundleVersion` en `MeCuido.swiftpm/Package.swift`)
 
 ## Principios que no se negocian
 
-- La app guía, **no sustituye** la actividad: cada paso termina con el niño presionando «¡Hecho!» tras hacerlo en el mundo real.
-- Sin penalizaciones: el temporizador no castiga, no hay pérdida de medallas, nunca se usa rojo. Error/reintento = azul suave; pausa = amarillo pastel.
-- Área táctil mínima 60×60 pt; botón principal ≥ 80 pt de alto; espaciado de 20–32 pt.
-- Todo texto de instrucción se narra con `SpeechService` (es-MX). Mensaje clave tras cada instrucción: «¡Ahora hazlo tú y presiona el botón cuando termines!».
-- Respetar `accessibilityReduceMotion`; el estado nunca depende solo del color; etiquetas de VoiceOver en todo control.
+1. **«Toda ayuda innecesaria incapacita».** La app muestra el *cómo*; la acción ocurre en el mundo
+   real. Cada paso termina solo cuando el niño presiona «¡Hecho!». Nunca automatizar el avance.
+2. **Sin penalizaciones.** El temporizador no castiga, no hay alarmas, no se pierden medallas ni
+   accesorios, no hay rachas que se rompan. **Nunca usar rojo.** Reintento = `Theme.retry`
+   (azul suave); pausa/aviso = `Theme.pause` (amarillo pastel).
+3. **Motricidad:** área táctil mínima 60×60 pt (`Theme.minTarget`), botón principal ≥ 80 pt de alto,
+   separación de 20–32 pt. Nada de gestos finos (pinch, doble toque, swipes cortos) como única vía.
+4. **Voz:** toda instrucción se narra con `SpeechService` (es-MX). Tras cada instrucción:
+   «¡Ahora hazlo tú y presiona el botón cuando termines!» (`StepGuideView.doItYourself`).
+5. **Accesibilidad:** respetar `accessibilityReduceMotion`; el estado nunca depende solo del color
+   (número → palomita, texto «Pendiente/¡Listo!»); etiqueta, valor y pista de VoiceOver en todo control.
+6. **Lenguaje:** español de México, positivo, en segunda persona, neutral en género y capacidades.
+7. **Privacidad:** todo se queda en el dispositivo. Sin cuentas, analítica, anuncios ni red
+   (es una app para menores). Cualquier excepción requiere decisión explícita del equipo.
 
-## Convenciones
+## Entorno y cómo verificar
 
-- Colores, espaciado y radios salen de `Theme` (`Theme/Theme.swift`); no hardcodear valores.
-- Tipografía: estilos de texto del sistema con `.fontDesign(.rounded)` (aplicado en la raíz).
-- Estado global: `ProgressStore` (progreso del niño) y `SettingsStore` (ajustes de adultos), ambos `@Observable`, inyectados con `.environment`. Todo se persiste en `UserDefaults`.
-- Tiempo de un paso: usar `settings.seconds(for:)`, no `suggestedSeconds` directo. Narración automática solo si `settings.autoNarration`.
-- Texto sobre `Theme.success` usa `Theme.onSuccess` (el blanco no da contraste). La app fuerza modo claro.
-- Rutinas nuevas: agregarlas en `Routine.all` (`Models/Routine.swift`), 3 pasos, pictograma SF Symbol.
-- Textos de la interfaz en español, lenguaje positivo y neutral.
+- Paquete de app de Swift Playgrounds: `MeCuido.swiftpm/` (formato `AppleProductTypes`,
+  `swift-tools-version: 5.9`). Se abre con **Xcode 15+** (simulador de iPad) o **Swift Playgrounds
+  4.4+** en iPad. No hay `.xcodeproj`; no crear uno sin acordarlo.
+- `Package.swift` es generado por Playgrounds: editar solo campos conocidos (versión, orientaciones,
+  `resources`, capacidades) y conservar el formato.
+- **Este equipo corre Windows: no se puede compilar ni ejecutar aquí.** Al cambiar Swift, revisar
+  con cuidado tipos, `import`s y APIs de iOS 17, y avisar qué debe probarse en Mac/iPad.
+- No hay tests automatizados todavía (Playgrounds no ejecuta `testTarget`). Ver Fase 0 de la ruta.
+- Las capturas de `docs/screenshots/` son **maquetas**, no capturas reales del simulador.
+
+## Arquitectura actual
+
+```
+MeCuido.swiftpm/
+├── App/MeCuidoApp.swift        Raíz: crea los stores, .fontDesign(.rounded), fuerza modo claro
+├── Models/
+│   ├── Routine.swift           Routine / RoutineStep (structs) + catálogo fijo Routine.all
+│   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
+│   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
+│   └── SettingsStore.swift     @Observable: ritmo (Pace), autoNarration, slowSpeech
+├── Services/SpeechService.swift  Singleton sobre AVSpeechSynthesizer (es-MX → es-ES)
+├── Theme/Theme.swift           Colores, espaciado, radios, minTarget, Color(hex:)
+└── Views/
+    ├── HomeView.swift          Pantalla 1: agenda + mascota + engrane de adultos; define `Route`
+    ├── RoutineStepsView.swift  Pantalla 2: «Mis pasos siguientes»
+    ├── StepGuideView.swift     Pantalla 3: guía, temporizador, «¡Hecho!», celebración
+    ├── CelebrationView.swift   fullScreenCover al terminar la rutina
+    ├── AvatarPickerView.swift  Sheet para equipar accesorios
+    ├── SettingsView.swift      Sheet de ajustes para adultos (long press 2 s en el engrane)
+    └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram, TimerRing
+```
+
+**Flujo:** `HomeView` (NavigationStack con `path: [Route]`) → `.routine` → `RoutineStepsView` →
+`.guide(routine, startIndex)` → `StepGuideView` → `markDone()` avanza al siguiente pendiente o llama
+`progress.finish(routine)` (+1 medalla, reinicia los pasos, guarda fecha) → `CelebrationView` →
+`onExit` vacía el `path`.
+
+**Persistencia:** `UserDefaults` con claves `medals`, `equippedAccessory`, `completedSteps`
+(array de ids de paso), `lastFinished` (`[routineId: timeIntervalSince1970]`), `settings.pace`,
+`settings.autoNarration`, `settings.slowSpeech`. **No renombrar claves ni ids de rutina/paso**
+(`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
+
+## Convenciones de código
+
+- Colores, espaciado y radios **solo** desde `Theme`; no hardcodear hex ni números mágicos de layout.
+- Texto sobre `Theme.success` usa `Theme.onSuccess` (el blanco no alcanza contraste AA).
+- Tipografía: estilos del sistema (`.title2`, `.body.bold()`…) para respetar Dynamic Type. Si hace
+  falta un tamaño fijo (pictogramas, íconos grandes), usar `@ScaledMetric`.
+- Estado global: `ProgressStore` y `SettingsStore` (`@Observable`, `final class`), inyectados con
+  `.environment(...)` y leídos con `@Environment(Tipo.self)`. Para bindings: `@Bindable var x = x`.
+- Los stores reciben `UserDefaults` por inicializador (`defaults: .standard`) para poder probarlos
+  con un suite aislado. Mantener ese patrón en stores nuevos.
+- Tiempo de un paso: `settings.seconds(for:)`, nunca `step.suggestedSeconds` directo.
+  Narración automática solo si `settings.autoNarration`; voz lenta con `slow: settings.slowSpeech`.
+- Navegación por valor con `Route`; nuevas pantallas del flujo del niño se agregan como casos de
+  `Route`. Ajustes y mascota son `sheet`; la celebración es `fullScreenCover`.
+- Rutinas incluidas: en `Routine.all`, **3 pasos**, ids `"<rutina>.<n>"`, pictograma SF Symbol,
+  `instruction` de una o dos frases cortas para narrar.
+- Cada vista nueva lleva `#Preview` con `.environment(ProgressStore())`, `.environment(SettingsStore())`
+  y `.fontDesign(.rounded)`.
+- Comentarios y textos en español; nombres de tipos/funciones en inglés (como el código existente).
+- Mensajes de commit: `feat:`, `fix:`, `docs:`, `refactor:` en español (como el historial).
+
+## Deuda y problemas conocidos (atender en Fase 0)
+
+- `StepGuideView.init` truena si una rutina tiene 0 pasos (`steps.count - 1 == -1`). Hoy no pasa
+  con el catálogo fijo, pero sí pasará con rutinas editables.
+- Tamaños fijos que no escalan con Dynamic Type: `Pictogram(size:)`, `TimerRing` 130 pt,
+  «¡Lo lograste!» a 56 pt, íconos de tarjetas. Con texto grande, la fila `controls` de
+  `StepGuideView` (2 columnas de botones + anillo) se desborda.
+- `Package.swift` declara `.phone`, pero el layout está pensado solo para iPad. Decidir: quitar
+  iPhone o adaptar con `ViewThatFits`/`horizontalSizeClass`.
+- Con **VoiceOver activo**, `SpeechService` y VoiceOver hablan a la vez. Usar
+  `UIAccessibility.isVoiceOverRunning` y, en ese caso, `AccessibilityNotification.Announcement`.
+- `flashSuccess()` usa `DispatchQueue.main.asyncAfter`; preferir `Task` + `Task.sleep` cancelable.
+- La lógica del temporizador vive dentro de la vista (`tick`, `resetTimer`): no es testeable.
+- Accesorio «Cohete» usa `paperplane.fill` (no coincide con el nombre).
+- Sin efectos de sonido (el documento de diseño pide «sonido alegre» al completar).
+- El gate de adultos (long press 2 s) no basta para la categoría Niños de App Store (pide una
+  verificación que un niño no pueda pasar, p. ej. una operación aritmética escrita).
+
+## Ruta de desarrollo (resumen)
+
+Detalle, tareas y criterios de aceptación en `docs/ruta-de-desarrollo.md`. Trabajar en orden;
+cada fase debe dejar la app usable de principio a fin.
+
+| Fase | Versión | Objetivo |
+| :-- | :-- | :-- |
+| 0 | 0.2.1 | Estabilizar: deuda de arriba, Dynamic Type, VoiceOver + TTS, `StepTimer` testeable |
+| 1 | 0.3 | Rutinas editables por adultos (SwiftData), gate de adultos robusto |
+| 2 | 0.4 | Agenda real: momentos del día, «Ahora toca», tablero *Primero → Después* |
+| 3 | 0.5 | Contenido propio: pictogramas ilustrados, fotos de los objetos reales, voz grabada, sonidos |
+| 4 | 0.6 | Mascota y motivación sin castigo: nombre, reacciones, álbum de logros acumulativo |
+| 5 | 0.7 | Perfiles de niños (iPad compartido en aula) y bitácora para adultos con exportación PDF |
+| 6 | 0.8 | Accesibilidad avanzada: Switch/Voice Control, alto contraste, modo oscuro, auditoría |
+| 7 | 0.9 | Validación con niños del rango de edad y ajustes por hallazgos |
+| 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
+| — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
+
+**Fase en curso:** 0. Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
+checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.
