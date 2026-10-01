@@ -56,14 +56,19 @@ MeCuido.swiftpm/
 │   ├── RoutinePlan.swift       DayMoment, RoutinePlan (agenda, Primero → Después, revisión),
 │   │                           Agenda («Ahora toca»), Reminder (planeación), Weekday
 │   ├── AdultGate.swift         Pregunta de multiplicación para entrar a Ajustes
+│   ├── MediaStore.swift        @Observable: foto y voz grabada por id de paso (archivos locales)
 │   ├── Reward.swift            Accessory + catálogo Accessory.all (desbloqueo por medallas)
 │   ├── ProgressStore.swift     @Observable: medallas, pasos hechos, lastFinished, accesorio puesto
-│   ├── SettingsStore.swift     @Observable: ritmo (Pace), autoNarration, slowSpeech, soundEffects
+│   ├── SettingsStore.swift     @Observable: ritmo, voz (autoNarration, slowSpeech, voiceIdentifier),
+│   │                           soundEffects, recordatorios
 │   └── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
 ├── Services/
-│   ├── SpeechService.swift     AVSpeechSynthesizer (es-MX → es-ES); con VoiceOver activo, anuncio
+│   ├── SpeechService.swift     Voz del sistema o grabación (narrate); con VoiceOver activo, anuncio.
+│   │                           Usar `settings.speak(_:)` / `settings.narrate(_:recording:)`
+│   ├── VoiceRecorder.swift     Grabación de instrucciones (AVAudioRecorder, máx. 20 s)
+│   ├── PhotoProcessing.swift   Redimensiona/comprime fotos; PhotoCache en memoria
 │   ├── SoundService.swift      Campanitas de logro generadas con AVAudioEngine (sin archivos)
-│   ├── AudioSession.swift      Configura una sola vez la AVAudioSession compartida
+│   ├── AudioSession.swift      Sesión de audio: reproducción hablada; grabación mientras se graba
 │   └── ReminderService.swift   Notificaciones locales + modificador .syncReminders() (en la raíz)
 ├── Theme/Theme.swift           Colores, espaciado, radios, minTarget, Color(hex:)
 └── Views/
@@ -76,9 +81,11 @@ MeCuido.swiftpm/
     ├── AdultGateView.swift     Pregunta + teclado grande antes de los ajustes
     ├── SettingsView.swift      Sheet de adultos (long press 2 s → AdultGateView → SettingsForm)
     ├── Admin/                  RoutinesAdminView, RoutineEditorView, StepEditorView,
-    │                           RoutinePlanView (PlanSections, BuiltInRoutineView, WeekdayPicker),
+    │                           RoutinePlanView (PlanSections, BuiltInRoutineView, BuiltInStepView,
+    │                           WeekdayPicker), StepMediaSections (+ CameraPicker), VoicePickerView,
     │                           SymbolPickerView (SymbolCatalog), RoutinesBackupDocument
-    └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram, TimerRing
+    └── Components/             AvatarView, Buttons (.primary/.secondary), Pictogram + StepPictogram,
+                                TimerRing
 ```
 
 **Flujo:** `HomeView` (NavigationStack con `path: [Route]`) → `.routine` → `RoutineStepsView` →
@@ -94,7 +101,8 @@ terminar, si `plan.reviewEnabled` muestra `RoutineReviewView`, y luego `finishRo
 (`"agujetas"`, `"agujetas.1"`…) sin migración: rompería el progreso guardado de los niños.
 Rutinas personalizadas, ocultas y planes: `Application Support/rutinas.json` (`RoutineStore.Snapshot`
 v2 con `plans`; lee también v1. Subir `version` si cambia el formato y mantener la lectura de la
-anterior). Solo se guardan los planes distintos del de fábrica (`RoutinePlan.defaultPlan(for:)`). Ids
+anterior). Solo se guardan los planes distintos del de fábrica (`RoutinePlan.defaultPlan(for:)`).
+Fotos y voces: `Application Support/media/<idPaso>.jpg|.m4a` (`MediaStore`); no van en el respaldo. Ids
 personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 
 ## Convenciones de código
@@ -113,7 +121,12 @@ personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 - Fechas en la lógica de agenda: pasar `now` y `calendar` como parámetros (para probar horarios).
 - Recordatorios: nunca insistentes ni con urgencia; apagados por defecto; solo locales.
 - Tiempo de un paso: `settings.seconds(for:)`, nunca `step.suggestedSeconds` directo.
-  Narración automática solo si `settings.autoNarration`; voz lenta con `slow: settings.slowSpeech`.
+  Narración automática solo si `settings.autoNarration`. Hablar siempre con `settings.speak(_:)` o,
+  para un paso, `settings.narrate(_:recording: media.existingURL(for: .voice, stepID:))` (respetan
+  voz elegida, voz lenta y grabaciones).
+- Pictograma de un paso: siempre `StepPictogram(step:)` (usa la foto real si existe).
+  Al borrar o duplicar pasos/rutinas, llamar `media.deleteAll` / `media.copyMedia`.
+- Fotos: solo objetos, sin personas; nunca salen del iPad.
 - Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
   sonidos de logro; nunca de error, alarma o tiempo agotado.
 - Lógica con estado (temporizadores, reglas de progreso) va en modelos sin SwiftUI, no en la vista.
@@ -123,7 +136,8 @@ personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
   `instruction` de una o dos frases cortas para narrar. Personalizadas: 1 a `RoutineStore.maxSteps` (5).
 - Pictogramas elegibles por adultos: agregarlos a `SymbolCatalog` con su nombre en español.
 - Cada vista nueva lleva `#Preview` con los stores que use (`.environment(ProgressStore())`,
-  `SettingsStore()`, `RoutineStore()`) y `.fontDesign(.rounded)`.
+  `SettingsStore()`, `RoutineStore()`, `MediaStore()`) y `.fontDesign(.rounded)`.
+- Permisos nuevos (cámara, micrófono, etc.) se declaran en `capabilities` de `MeCuido.swiftpm/Package.swift`.
 - Comentarios y textos en español; nombres de tipos/funciones en inglés (como el código existente).
 - Mensajes de commit: `feat:`, `fix:`, `docs:`, `refactor:` en español (como el historial).
 
@@ -151,5 +165,6 @@ cada fase debe dejar la app usable de principio a fin.
 | 8 | 1.0 | Publicación: TestFlight / App Store (categoría Niños), privacidad, ícono, capturas reales |
 | — | 1.x | Siri/App Intents, widget, sincronización opcional casa ↔ escuela |
 
-**Fase en curso:** 3 (Fases 0, 1 y 2 esperan la verificación en iPad). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
+**Fase en curso:** 4 (Fases 0–3 esperan la verificación en iPad; en la 3 faltan las
+ilustraciones propias, que hace el equipo). Al terminar una tarea, marcarla en `docs/ruta-de-desarrollo.md`, actualizar el
 checklist de «Avance actual» del `README.md` y subir `displayVersion`/`bundleVersion` al cerrar fase.

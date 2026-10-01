@@ -111,16 +111,27 @@ Objetivo: que la app ayude a **iniciar** la rutina correcta, no solo a seguirla.
 
 Objetivo: pictogramas más claros y conectados con los objetos reales del niño.
 
-- [ ] Carpeta `Resources/` declarada en `Package.swift` con ilustraciones propias por paso
-      (estilo consistente, fondo claro, sin texto dentro de la imagen).
-- [ ] Animaciones de paso con `PhaseAnimator`/`KeyframeAnimator` (p. ej. orejitas de conejo),
-      con alternativa estática cuando *Reducir movimiento* está activo.
-- [ ] **Foto real del objeto**: el adulto toma una foto (cámara o `PhotosPicker`) de la mochila,
-      la cama o el lavabo del niño y se usa como pictograma del paso. Ayuda a generalizar al
-      mundo real. Guardar en el dispositivo, comprimida.
-- [ ] **Voz grabada** por un familiar o la maestra por paso (`AVAudioRecorder`), con la voz
-      sintética como respaldo.
-- [ ] Selector de voz es-MX disponible en el dispositivo y velocidad ajustable.
+- [x] **Foto real del objeto** por paso (también en rutinas incluidas): fototeca (`PhotosPicker`)
+      o cámara; se reduce a 1200 px y JPEG 0.8 (`PhotoProcessing`) y se guarda en
+      `Application Support/media/<idPaso>.jpg` (`MediaStore`). `StepPictogram` la muestra en la
+      guía, «Mis pasos», la revisión y los editores; sin foto, el SF Symbol de siempre.
+- [x] **Voz grabada** por paso (`VoiceRecorder`, AAC, máx. 20 s, `<idPaso>.m4a`). La guía la
+      reproduce en lugar de la voz sintética (sin prefijo «¡Muy bien! Sigue:»); con VoiceOver
+      activo se sigue enviando el texto como anuncio.
+- [x] Elegir la voz del iPad (voces en español instaladas, primero es-MX y mejor calidad), con
+      ejemplo al tocarla. La velocidad sigue siendo «Voz más lenta» (Fase 0).
+- [x] Al borrar pasos o rutinas se borran sus archivos; al duplicar se copian. Las fotos y voces
+      no van en el respaldo JSON (se avisa en Ajustes → Rutinas).
+- [x] Permisos de cámara y micrófono declarados en `Package.swift` (`capabilities`).
+- [ ] **Necesita al equipo:** ilustraciones propias por paso (estilo consistente, fondo claro, sin
+      texto dentro) en `Resources/` declarada en `Package.swift`. Cuando existan, `StepPictogram`
+      puede usarlas antes que el SF Symbol.
+- [ ] **Depende de las ilustraciones:** animaciones de paso con `PhaseAnimator`/`KeyframeAnimator`
+      (p. ej. orejitas de conejo) y alternativa estática con *Reducir movimiento*.
+- [ ] Incluir fotos y voces en el respaldo (archivo .zip o carpeta) si en la Fase 7 se necesita
+      pasarlas entre iPads.
+- [ ] **Verificar en iPad**: foto con cámara y fototeca, grabar y escuchar, guía con voz grabada,
+      VoiceOver con voz grabada, permiso de micrófono negado.
 
 **Aceptación:** con foto y voz familiar, el niño reconoce el paso más rápido que con el símbolo genérico
 (medirlo en la Fase 7).
