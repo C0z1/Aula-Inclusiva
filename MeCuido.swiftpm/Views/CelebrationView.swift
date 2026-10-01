@@ -3,6 +3,8 @@ import SwiftUI
 /// Celebración al terminar una rutina: medalla y, si toca, un accesorio nuevo.
 struct CelebrationView: View {
     let accessory: Accessory?
+    /// Lo agradable que sigue (tablero «Primero → Después»), si el adulto lo eligió.
+    var after: AfterActivity? = nil
     let onDone: () -> Void
 
     @Environment(SettingsStore.self) private var settings
@@ -39,6 +41,14 @@ struct CelebrationView: View {
                 .background(.white, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
             }
 
+            if let after {
+                Label("Ahora sí: \(after.title)", systemImage: after.symbol)
+                    .font(.title2.weight(.semibold))
+                    .padding(.horizontal, Theme.spacing)
+                    .padding(.vertical, 12)
+                    .background(Theme.reward.opacity(0.3), in: Capsule())
+            }
+
             Spacer()
 
             Button(action: onDone) {
@@ -56,6 +66,7 @@ struct CelebrationView: View {
             withAnimation(.spring) { appeared = true }
             var message = "¡Lo lograste! Ganaste una medalla."
             if let accessory { message += " Desbloqueaste: \(accessory.name)." }
+            if let after { message += " Ahora sí: \(after.title)." }
             if settings.autoNarration {
                 SpeechService.shared.speak(message, slow: settings.slowSpeech)
             }

@@ -9,11 +9,30 @@ enum Route: Hashable {
 struct HomeView: View {
     @Environment(ProgressStore.self) private var progress
     @Environment(RoutineStore.self) private var routines
+    @Environment(\.scenePhase) private var scenePhase
     @State private var path: [Route] = []
     @State private var showingAvatar = false
     @State private var showingSettings = false
+    /// Hora con la que se arma la agenda; se actualiza cada minuto y al volver a la app.
+    @State private var now = Date.now
 
     private let columns = [GridItem(.adaptive(minimum: 260), spacing: Theme.spacing)]
+
+    private var current: Routine? {
+        Agenda.current(in: routines.visibleRoutines,
+                       plan: routines.plan(for:),
+                       isDoneToday: { progress.isDoneToday($0, now: now) },
+                       isInProgress: { progress.completedCount(in: $0) > 0 },
+                       now: now)
+    }
+
+    private var scheduledToday: [Routine] {
+        Agenda.scheduledToday(in: routines.visibleRoutines, plan: routines.plan(for:), now: now)
+    }
+
+    private var doneScheduledToday: Int {
+        scheduledToday.filter { progress.isDoneToday($0, now: now) }.count
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -21,7 +40,24 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: Theme.padding) {
                     header
 
-                    Text("¿Qué vas a hacer ahora?")
+                    if let current {
+                        NavigationLink(value: Route.routine(current)) {
+                            NowCard(routine: current,
+                                    moment: DayMoment.at(now),
+                                    completed: progress.completedCount(in: current),
+                                    after: routines.plan(for: current).afterActivity)
+                        }
+                        .buttonStyle(.plain)
+                    } else if !scheduledToday.isEmpty, doneScheduledToday == scheduledToday.count {
+                        Label("¡Terminaste todas tus rutinas de hoy!", systemImage: "star.circle.fill")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(Theme.onSuccess)
+                            .padding(Theme.spacing)
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.success.opacity(0.35), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+                    }
+
+                    Text(current == nil ? "¿Qué vas a hacer ahora?" : "Todas mis rutinas")
                         .font(.title2.weight(.semibold))
 
                     if routines.visibleRoutines.isEmpty {
@@ -38,7 +74,8 @@ struct HomeView: View {
                             NavigationLink(value: Route.routine(routine)) {
                                 RoutineCard(routine: routine,
                                             completed: progress.completedCount(in: routine),
-                                            doneToday: progress.isDoneToday(routine))
+                                            doneToday: progress.isDoneToday(routine, now: now),
+                                            plan: routines.plan(for: routine))
                             }
                             .buttonStyle(.plain)
                         }
@@ -64,6 +101,15 @@ struct HomeView: View {
                 SettingsView()
             }
         }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                now = .now
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { now = .now }
+        }
     }
 
     private var header: some View {
@@ -76,16 +122,18 @@ struct HomeView: View {
             .accessibilityHint("Abre tu mascota para ponerle accesorios")
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("¡Hola!")
+                Text(DayMoment.at(now).greeting)
                     .font(.largeTitle.bold())
                 Label("\(progress.medals) medalla\(progress.medals == 1 ? "" : "s")",
                       systemImage: "checkmark.seal.fill")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(Theme.primary)
-                Label("Hoy: \(progress.doneTodayCount(of: routines.visibleRoutines)) de \(routines.visibleRoutines.count) rutinas",
-                      systemImage: "calendar")
-                    .font(.body.bold())
-                    .foregroundStyle(.secondary)
+                if !scheduledToday.isEmpty {
+                    Label("Hoy: \(doneScheduledToday) de \(scheduledToday.count) rutinas",
+                          systemImage: "calendar")
+                        .font(.body.bold())
+                        .foregroundStyle(.secondary)
+                }
             }
             .accessibilityElement(children: .combine)
             Spacer()
@@ -114,6 +162,7 @@ private struct RoutineCard: View {
     let routine: Routine
     let completed: Int
     let doneToday: Bool
+    let plan: RoutinePlan
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 56
 
@@ -130,6 +179,11 @@ private struct RoutineCard: View {
             Text(routine.category.rawValue)
                 .font(.body)
                 .foregroundStyle(.secondary)
+            if let moment = plan.moments.min() {
+                Label(plan.moments.sorted().map(\.title).joined(separator: " y "), systemImage: moment.symbol)
+                    .font(.body.bold())
+                    .foregroundStyle(Theme.primary)
+            }
             if doneToday {
                 Label("¡Hecha hoy!", systemImage: "checkmark.circle.fill")
                     .font(.body.bold())
@@ -155,6 +209,64 @@ private struct RoutineCard: View {
         .contentShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
         .accessibilityElement(children: .combine)
         .accessibilityHint("Abre los pasos de esta rutina")
+    }
+}
+
+/// Tarjeta grande de la rutina que toca ahora, con su «Primero → Después».
+private struct NowCard: View {
+    let routine: Routine
+    let moment: DayMoment
+    let completed: Int
+    let after: AfterActivity?
+
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 80
+
+    var body: some View {
+        HStack(alignment: .center, spacing: Theme.padding) {
+            Image(systemName: routine.symbol)
+                .font(.system(size: iconSize))
+                .foregroundStyle(.white)
+                .frame(width: iconSize * 1.5, height: iconSize * 1.5)
+                .background(Theme.primary, in: RoundedRectangle(cornerRadius: Theme.cardRadius * 1.5))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Ahora toca", systemImage: moment.symbol)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(Theme.primary)
+                Text(routine.title)
+                    .font(.largeTitle.bold())
+                    .multilineTextAlignment(.leading)
+                if completed > 0 {
+                    Label("Vas en el paso \(completed + 1) de \(routine.steps.count)",
+                          systemImage: "arrow.forward.circle.fill")
+                        .font(.body.bold())
+                        .foregroundStyle(Theme.primary)
+                }
+                if let after {
+                    Label("Después: \(after.title)", systemImage: after.symbol)
+                        .font(.body.bold())
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Theme.reward.opacity(0.3), in: Capsule())
+                }
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.forward.circle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Theme.success)
+                .accessibilityHidden(true)
+        }
+        .padding(Theme.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: Theme.cardRadius * 1.5))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cardRadius * 1.5)
+                .stroke(Theme.primary, lineWidth: 4)
+        )
+        .contentShape(RoundedRectangle(cornerRadius: Theme.cardRadius * 1.5))
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("Abre los pasos de la rutina que toca ahora")
     }
 }
 

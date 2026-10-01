@@ -4,7 +4,8 @@ import Observation
 /// Rutinas que ve el niño: las incluidas (definidas en `Routine.all`) más las que crean los adultos.
 ///
 /// Las incluidas viven en el código y nunca se borran ni se editan: se pueden ocultar o duplicar
-/// para personalizarlas. Las personalizadas y la lista de ocultas se guardan en un JSON local.
+/// para personalizarlas. Las personalizadas, las ocultas y el plan de cada rutina (agenda,
+/// «Primero → Después», revisión final) se guardan en un JSON local.
 @Observable
 final class RoutineStore {
     /// Máximo de pasos por rutina personalizada (memoria de trabajo del niño).
@@ -16,16 +17,34 @@ final class RoutineStore {
 
     private(set) var customRoutines: [Routine]
     private(set) var hiddenIDs: Set<String>
+    /// Solo los planes que un adulto cambió; el resto usa `RoutinePlan.defaultPlan(for:)`.
+    private(set) var plans: [String: RoutinePlan]
 
     private let fileURL: URL
 
     /// Formato del archivo (y del respaldo que se exporta). Subir `version` si cambia.
+    /// v1: rutinas personalizadas y ocultas. v2: agrega `plans` (se lee también la v1).
     struct Snapshot: Codable, Equatable {
-        static let currentVersion = 1
+        static let currentVersion = 2
 
         var version = Snapshot.currentVersion
         var customRoutines: [Routine]
         var hiddenIDs: [String]
+        var plans: [String: RoutinePlan]
+
+        init(customRoutines: [Routine], hiddenIDs: [String], plans: [String: RoutinePlan] = [:]) {
+            self.customRoutines = customRoutines
+            self.hiddenIDs = hiddenIDs
+            self.plans = plans
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            version = try container.decode(Int.self, forKey: .version)
+            customRoutines = try container.decode([Routine].self, forKey: .customRoutines)
+            hiddenIDs = try container.decode([String].self, forKey: .hiddenIDs)
+            plans = try container.decodeIfPresent([String: RoutinePlan].self, forKey: .plans) ?? [:]
+        }
     }
 
     enum ImportError: Error, Equatable {
@@ -44,6 +63,7 @@ final class RoutineStore {
             .flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
         customRoutines = snapshot?.customRoutines ?? []
         hiddenIDs = Set(snapshot?.hiddenIDs ?? [])
+        plans = snapshot?.plans ?? [:]
     }
 
     // MARK: - Consultas
@@ -68,10 +88,26 @@ final class RoutineStore {
         hiddenIDs.contains(routine.id)
     }
 
+    func plan(for routine: Routine) -> RoutinePlan {
+        plans[routine.id] ?? RoutinePlan.defaultPlan(for: routine.id)
+    }
+
     // MARK: - Cambios
 
     func setHidden(_ hidden: Bool, for routine: Routine) {
         if hidden { hiddenIDs.insert(routine.id) } else { hiddenIDs.remove(routine.id) }
+        persist()
+    }
+
+    func setPlan(_ plan: RoutinePlan, for routine: Routine) {
+        guard self.routine(id: routine.id) != nil else { return }
+        var plan = plan
+        if let after = plan.afterActivity {
+            let title = after.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            plan.afterActivity = title.isEmpty ? nil : AfterActivity(title: title, symbol: after.symbol)
+        }
+        guard self.plan(for: routine) != plan else { return }
+        plans[routine.id] = plan == RoutinePlan.defaultPlan(for: routine.id) ? nil : plan
         persist()
     }
 
@@ -101,6 +137,8 @@ final class RoutineStore {
             }
         )
         customRoutines.append(copy)
+        let originalPlan = plan(for: routine)
+        if originalPlan != .anytime { plans[id] = originalPlan }
         persist()
         return copy
     }
@@ -120,6 +158,7 @@ final class RoutineStore {
         guard !isBuiltIn(routine) else { return }
         customRoutines.removeAll { $0.id == routine.id }
         hiddenIDs.remove(routine.id)
+        plans[routine.id] = nil
         persist()
     }
 
@@ -157,7 +196,7 @@ final class RoutineStore {
     }
 
     /// Agrega las rutinas de un respaldo. Si una ya existe (mismo id) se reemplaza;
-    /// nunca toca las incluidas. Devuelve cuántas rutinas se importaron.
+    /// nunca cambia el contenido de las incluidas (sí su plan). Devuelve cuántas rutinas se importaron.
     @discardableResult
     func importData(_ data: Data) throws -> Int {
         guard let backup = try? JSONDecoder().decode(Snapshot.self, from: data) else {
@@ -176,6 +215,9 @@ final class RoutineStore {
             }
         }
         hiddenIDs.formUnion(backup.hiddenIDs.filter { id in allRoutines.contains { $0.id == id } })
+        for (id, plan) in backup.plans where routine(id: id) != nil {
+            plans[id] = plan
+        }
         persist()
         return incoming.count
     }
@@ -183,7 +225,7 @@ final class RoutineStore {
     // MARK: - Privado
 
     private var snapshot: Snapshot {
-        Snapshot(customRoutines: customRoutines, hiddenIDs: hiddenIDs.sorted())
+        Snapshot(customRoutines: customRoutines, hiddenIDs: hiddenIDs.sorted(), plans: plans)
     }
 
     private func persist() {

@@ -19,7 +19,8 @@ struct RoutinesAdminView: View {
                     NavigationLink {
                         RoutineEditorView(routineID: routine.id)
                     } label: {
-                        RoutineAdminRow(routine: routine, isHidden: routines.isHidden(routine))
+                        RoutineAdminRow(routine: routine, isHidden: routines.isHidden(routine),
+                                        plan: routines.plan(for: routine))
                     }
                 }
                 .onDelete { offsets in
@@ -40,25 +41,17 @@ struct RoutinesAdminView: View {
 
             Section {
                 ForEach(Routine.all) { routine in
-                    VStack(alignment: .leading, spacing: 12) {
-                        RoutineAdminRow(routine: routine, isHidden: routines.isHidden(routine))
-                        Toggle("Mostrar en la agenda", isOn: Binding(
-                            get: { !routines.isHidden(routine) },
-                            set: { routines.setHidden(!$0, for: routine) }
-                        ))
-                        Button {
-                            openRoutineID = routines.duplicate(routine).id
-                        } label: {
-                            Label("Duplicar para personalizar", systemImage: "plus.square.on.square")
-                        }
-                        .buttonStyle(.borderless)
+                    NavigationLink {
+                        BuiltInRoutineView(routine: routine)
+                    } label: {
+                        RoutineAdminRow(routine: routine, isHidden: routines.isHidden(routine),
+                                        plan: routines.plan(for: routine))
                     }
-                    .padding(.vertical, 6)
                 }
             } header: {
                 Text("Incluidas")
             } footer: {
-                Text("Las rutinas incluidas no se editan ni se borran; duplica una para cambiar sus pasos.")
+                Text("En cada una puedes elegir cuándo toca, qué viene después u ocultarla. Sus pasos no se editan; duplícala para cambiarlos.")
             }
 
             Section {
@@ -138,6 +131,7 @@ struct RoutinesAdminView: View {
 private struct RoutineAdminRow: View {
     let routine: Routine
     let isHidden: Bool
+    let plan: RoutinePlan
 
     var body: some View {
         HStack(spacing: 16) {
@@ -152,6 +146,9 @@ private struct RoutineAdminRow: View {
                 Text(details)
                     .font(.callout)
                     .foregroundStyle(.secondary)
+                Label(plan.summary, systemImage: plan.isAnytime ? "hand.tap.fill" : "calendar")
+                    .font(.callout)
+                    .foregroundStyle(isHidden ? Color.secondary : Theme.primary)
             }
         }
         .accessibilityElement(children: .combine)

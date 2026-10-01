@@ -4,6 +4,7 @@ import SwiftUI
 struct RoutineStepsView: View {
     let routine: Routine
     @Environment(ProgressStore.self) private var progress
+    @Environment(RoutineStore.self) private var routines
 
     var body: some View {
         let nextIndex = progress.nextPendingIndex(in: routine) ?? 0
@@ -19,6 +20,10 @@ struct RoutineStepsView: View {
                     .padding(.vertical, 8)
                     .accessibilityLabel("Progreso de la rutina")
                     .accessibilityValue("\(progress.completedCount(in: routine)) de \(routine.steps.count) pasos")
+            }
+
+            if let after = routines.plan(for: routine).afterActivity {
+                FirstThenStrip(routine: routine, after: after)
             }
 
             ScrollView(.horizontal) {
@@ -111,11 +116,60 @@ private struct StepCard: View {
     }
 }
 
+/// Tablero «Primero → Después»: la rutina y lo agradable que viene al terminarla.
+private struct FirstThenStrip: View {
+    let routine: Routine
+    let after: AfterActivity
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Theme.spacing) { first; arrow; then }
+            VStack(spacing: 12) { first; arrow.rotationEffect(.degrees(90)); then }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Primero: \(routine.title). Después: \(after.title).")
+    }
+
+    private var first: some View {
+        panel(caption: "Primero", title: routine.title, symbol: routine.symbol, fill: Theme.secondaryButton)
+    }
+
+    private var then: some View {
+        panel(caption: "Después", title: after.title, symbol: after.symbol, fill: Theme.reward.opacity(0.3))
+    }
+
+    private var arrow: some View {
+        Image(systemName: "arrow.right")
+            .font(.title.bold())
+            .foregroundStyle(Theme.primary)
+    }
+
+    private func panel(caption: String, title: String, symbol: String, fill: Color) -> some View {
+        HStack(spacing: 16) {
+            Image(systemName: symbol)
+                .font(.system(size: 36))
+                .foregroundStyle(Theme.primary)
+                .frame(width: 56)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(caption)
+                    .font(.body.bold())
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.title3.weight(.semibold))
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(fill, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+    }
+}
+
 #Preview {
     NavigationStack {
         RoutineStepsView(routine: Routine.all[0])
     }
     .environment(ProgressStore())
     .environment(SettingsStore())
+    .environment(RoutineStore())
     .fontDesign(.rounded)
 }

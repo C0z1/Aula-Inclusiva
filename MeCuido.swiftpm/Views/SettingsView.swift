@@ -60,6 +60,8 @@ private struct SettingsForm: View {
                     Text("Si se apaga la lectura automática, el botón «Escuchar de nuevo» sigue disponible.")
                 }
 
+                RemindersSection()
+
                 Section {
                     Toggle("Sonidos de logro", isOn: $settings.soundEffects)
                 } header: {
@@ -77,6 +79,63 @@ private struct SettingsForm: View {
                 }
             }
         }
+    }
+}
+
+/// Recordatorios locales por momento del día. Pide permiso al activarlos.
+private struct RemindersSection: View {
+    @Environment(SettingsStore.self) private var settings
+    @State private var deniedMessage = false
+
+    var body: some View {
+        Section {
+            Toggle("Recordar las rutinas", isOn: Binding(
+                get: { settings.remindersEnabled },
+                set: { enable in
+                    guard enable else {
+                        settings.remindersEnabled = false
+                        return
+                    }
+                    Task {
+                        let granted = await ReminderService.requestAuthorization()
+                        settings.remindersEnabled = granted
+                        deniedMessage = !granted
+                    }
+                }
+            ))
+
+            if settings.remindersEnabled {
+                ForEach(DayMoment.allCases) { moment in
+                    DatePicker(selection: time(for: moment), displayedComponents: .hourAndMinute) {
+                        Label(moment.title, systemImage: moment.symbol)
+                    }
+                }
+            }
+        } header: {
+            Text("Recordatorios")
+        } footer: {
+            Text("Una notificación amable a la hora de cada momento, solo los días en que toca alguna rutina. Se programan en el iPad; nada sale del dispositivo.")
+        }
+        .alert("Las notificaciones están desactivadas", isPresented: $deniedMessage) {
+            Button("Aceptar", role: .cancel) {}
+        } message: {
+            Text("Para usar recordatorios, permite las notificaciones de Me Cuido en la app Ajustes del iPad.")
+        }
+    }
+
+    /// Convierte los minutos guardados a una fecha de hoy para el DatePicker, y de regreso.
+    private func time(for moment: DayMoment) -> Binding<Date> {
+        Binding(
+            get: {
+                let minutes = settings.reminderMinutes(for: moment)
+                return Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60,
+                                             second: 0, of: .now) ?? .now
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                settings.setReminderMinutes((parts.hour ?? 0) * 60 + (parts.minute ?? 0), for: moment)
+            }
+        )
     }
 }
 

@@ -47,7 +47,17 @@ final class SettingsStore {
         didSet { defaults.set(soundEffects, forKey: Self.soundEffectsKey) }
     }
 
+    /// Recordatorios locales a la hora de cada momento del día (los pide un adulto).
+    var remindersEnabled: Bool {
+        didSet { defaults.set(remindersEnabled, forKey: Self.remindersKey) }
+    }
+
+    /// Hora de recordatorio por momento, en minutos desde la medianoche.
+    private(set) var reminderMinutes: [DayMoment: Int]
+
     private let defaults: UserDefaults
+    private static let remindersKey = "settings.reminders"
+    private static let reminderMinutesKey = "settings.reminderMinutes"
     private static let paceKey = "settings.pace"
     private static let autoNarrationKey = "settings.autoNarration"
     private static let slowSpeechKey = "settings.slowSpeech"
@@ -59,6 +69,21 @@ final class SettingsStore {
         self.autoNarration = defaults.object(forKey: Self.autoNarrationKey) as? Bool ?? true
         self.slowSpeech = defaults.bool(forKey: Self.slowSpeechKey)
         self.soundEffects = defaults.object(forKey: Self.soundEffectsKey) as? Bool ?? true
+        self.remindersEnabled = defaults.bool(forKey: Self.remindersKey)
+        let stored = defaults.dictionary(forKey: Self.reminderMinutesKey) as? [String: Int] ?? [:]
+        self.reminderMinutes = Dictionary(uniqueKeysWithValues: stored.compactMap { key, value in
+            DayMoment(rawValue: key).map { ($0, value) }
+        })
+    }
+
+    func reminderMinutes(for moment: DayMoment) -> Int {
+        reminderMinutes[moment] ?? moment.defaultReminderMinutes
+    }
+
+    func setReminderMinutes(_ minutes: Int, for moment: DayMoment) {
+        reminderMinutes[moment] = min(max(minutes, 0), 24 * 60 - 1)
+        defaults.set(Dictionary(uniqueKeysWithValues: reminderMinutes.map { ($0.key.rawValue, $0.value) }),
+                     forKey: Self.reminderMinutesKey)
     }
 
     /// Tiempo sugerido de un paso ajustado al ritmo elegido.

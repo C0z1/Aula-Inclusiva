@@ -34,10 +34,13 @@ private struct StepGuideContent: View {
 
     @Environment(ProgressStore.self) private var progress
     @Environment(SettingsStore.self) private var settings
+    @Environment(RoutineStore.self) private var routines
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var index: Int
+    /// Revisión final antes de celebrar (si el adulto la activó en el plan).
+    @State private var showReview = false
     @State private var timer = StepTimer()
     @State private var started = false
     @State private var doneCount = 0
@@ -56,7 +59,7 @@ private struct StepGuideContent: View {
 
     private var step: RoutineStep { routine.steps[index] }
 
-    var body: some View {
+    private var guide: some View {
         ScrollView {
             VStack(spacing: Theme.spacing) {
                 Text("Paso \(index + 1) de \(routine.steps.count)")
@@ -112,6 +115,17 @@ private struct StepGuideContent: View {
                     .transition(.opacity)
             }
         }
+    }
+
+    var body: some View {
+        Group {
+            if showReview {
+                RoutineReviewView(routine: routine, onConfirm: finishRoutine, onRevisit: revisit)
+                    .transition(.opacity)
+            } else {
+                guide
+            }
+        }
         .navigationTitle(routine.title)
         .navigationBarTitleDisplayMode(.inline)
         .sensoryFeedback(.success, trigger: doneCount)
@@ -132,7 +146,8 @@ private struct StepGuideContent: View {
             if phase != .active { speech.stop() }
         }
         .fullScreenCover(isPresented: $showCelebration) {
-            CelebrationView(accessory: newAccessory) {
+            CelebrationView(accessory: newAccessory,
+                            after: routines.plan(for: routine).afterActivity) {
                 showCelebration = false
                 onExit()
             }
@@ -214,7 +229,7 @@ private struct StepGuideContent: View {
     private func runTimer() async {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(1))
-            guard !showCelebration, scenePhase == .active else { continue }
+            guard !showCelebration, !showReview, scenePhase == .active else { continue }
             withAnimation { timer.tick() }
         }
     }
@@ -242,12 +257,30 @@ private struct StepGuideContent: View {
             settings.play(.stepDone)
             flashSuccess()
             go(to: next, prefix: "¡Muy bien! Sigue: ")
+        } else if routines.plan(for: routine).reviewEnabled {
+            settings.play(.stepDone)
+            withAnimation(reduceMotion ? nil : .default) { showReview = true }
+            if settings.autoNarration {
+                speech.speak(RoutineReviewView.spokenPrompt, slow: settings.slowSpeech)
+            } else {
+                speech.stop()
+            }
         } else {
-            speech.stop()
-            settings.play(.routineDone)
-            newAccessory = progress.finish(routine)
-            showCelebration = true
+            finishRoutine()
         }
+    }
+
+    private func finishRoutine() {
+        speech.stop()
+        settings.play(.routineDone)
+        newAccessory = progress.finish(routine)
+        showCelebration = true
+    }
+
+    /// Desde la revisión, vuelve a un paso para repasarlo. Al presionar «¡Hecho!» se regresa a la revisión.
+    private func revisit(_ stepIndex: Int) {
+        withAnimation(reduceMotion ? nil : .default) { showReview = false }
+        go(to: stepIndex, prefix: "Vamos a repasar: ")
     }
 
     private func flashSuccess() {
@@ -309,5 +342,6 @@ private struct SuccessBadge: View {
     }
     .environment(ProgressStore())
     .environment(SettingsStore())
+    .environment(RoutineStore())
     .fontDesign(.rounded)
 }

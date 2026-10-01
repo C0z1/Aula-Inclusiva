@@ -84,6 +84,8 @@ struct RoutineEditorView: View {
                 Text(stepsFooter(count: routine.wrappedValue.steps.count))
             }
 
+            PlanSections(routine: routine.wrappedValue)
+
             Section {
                 Button {
                     confirmingDelete = true
