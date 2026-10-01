@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Lista de rutinas para adultos: crear, personalizar, ocultar y respaldar.
 struct RoutinesAdminView: View {

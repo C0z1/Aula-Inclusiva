@@ -26,5 +26,16 @@ jobs:
         # Los errores se publican como anotaciones para verlos sin acceso a los logs.
         run: |
           set -o pipefail
-          xcodebuild -list 2>&1 | tee list.log || { tail -20 list.log | sed 's/^/::error::/'; exit 1; }
-          xcodebuild build             -scheme "Me Cuido"             -destination 'generic/platform=iOS Simulator'             CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log             || { grep -E "error:|fatal" build.log | sort -u | head -40 | sed 's/^/::error::/'; tail -15 build.log | sed 's/^/::warning::/'; exit 1; }
+          # El esquema lo genera Xcode a partir del paquete; se toma el primero que reporte.
+          SCHEME=$(xcodebuild -list -json 2>/dev/null | python3 -c '
+          import sys, json
+          d = json.load(sys.stdin)
+          info = d.get("workspace") or d.get("project") or {}
+          print(info.get("schemes", [""])[0])')
+          echo "::notice::Esquema: $SCHEME"
+          if [ -z "$SCHEME" ]; then xcodebuild -list 2>&1 | tail -20 | sed 's/^/::error::/'; exit 1; fi
+          xcodebuild build -scheme "$SCHEME" -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || {
+            grep -E "error:|fatal" build.log | sort -u | head -40 | sed 's/^/::error::/'
+            tail -15 build.log | sed 's/^/::warning::/'
+            exit 1
+          }
