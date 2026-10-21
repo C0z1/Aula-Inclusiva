@@ -34,8 +34,49 @@ jobs:
           print(info.get("schemes", [""])[0])')
           echo "::notice::Esquema: $SCHEME"
           if [ -z "$SCHEME" ]; then xcodebuild -list 2>&1 | tail -20 | sed 's/^/::error::/'; exit 1; fi
-          xcodebuild build -scheme "$SCHEME" -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || {
+          xcodebuild build -scheme "$SCHEME" -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -derivedDataPath "$RUNNER_TEMP/dd" 2>&1 | tee build.log || {
             grep -E "error:|fatal" build.log | sort -u | head -40 | sed 's/^/::error::/'
             tail -15 build.log | sed 's/^/::warning::/'
             exit 1
           }
+
+      # Abre la app en un simulador de iPad: si se cierra al arrancar, el job falla con el reporte del cierre.
+      - name: Abrir en el simulador de iPad
+        working-directory: MeCuido.swiftpm
+        run: |
+          set -euo pipefail
+          APP=$(find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name '*.app' | head -1)
+          [ -n "$APP" ] || { echo "::error::No se encontró el .app compilado"; exit 1; }
+          BUNDLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import sys, json
+          ipads = [d for ds in json.load(sys.stdin)["devices"].values() for d in ds if d["name"].startswith("iPad")]
+          ipads.sort(key=lambda d: ("Pro" not in d["name"], d["name"]))
+          print(ipads[0]["udid"] if ipads else "")')
+          [ -n "$UDID" ] || { echo "::error::No hay simuladores de iPad disponibles"; exit 1; }
+          echo "::notice::App $BUNDLE en $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 || true
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p capturas
+
+          PID=$(xcrun simctl launch "$UDID" "$BUNDLE" | awk '{print $NF}')
+          sleep 15
+          xcrun simctl io "$UDID" screenshot capturas/1-inicio.png
+          sleep 5
+          if ! ps -p "$PID" > /dev/null; then
+            echo "::error::La app se cerró después de abrirla"
+            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*.ips' -o -name '*.crash' \) -print0 \
+              | xargs -0 -I{} sh -c 'head -c 6000 "{}"' | sed 's/^/::warning::/' | head -80
+            exit 1
+          fi
+          echo "::notice::La app sigue abierta después de 20 s"
+
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-ipad
+          path: MeCuido.swiftpm/capturas
+          if-no-files-found: ignore
