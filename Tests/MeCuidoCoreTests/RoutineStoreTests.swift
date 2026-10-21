@@ -195,7 +195,7 @@ final class AdultGateTests: XCTestCase {
             let gate = AdultGate.random(using: &generator)
             XCTAssertTrue((11...15).contains(gate.left))
             XCTAssertTrue((2...5).contains(gate.right))
-            XCTAssertLessThanOrEqual(String(gate.answer).count, AdultGate.maxDigits)
+            XCTAssertEqual(String(gate.answer).count, AdultGate.maxDigits, "La vista revisa al llegar a estas cifras")
         }
     }
 }
