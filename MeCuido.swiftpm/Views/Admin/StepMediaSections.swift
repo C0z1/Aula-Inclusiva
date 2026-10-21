@@ -71,7 +71,7 @@ struct StepMediaSections: View {
                 }
                 if let voiceURL {
                     Button {
-                        SpeechService.shared.narrate("", recording: voiceURL)
+                        SpeechService.shared.narrate("Hay una grabación para este paso.", recording: voiceURL)
                     } label: {
                         Label("Escuchar la grabación", systemImage: "play.circle.fill")
                     }
