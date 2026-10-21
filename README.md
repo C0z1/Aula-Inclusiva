@@ -143,7 +143,8 @@ El proyecto es un paquete de app de Swift Playgrounds: [`MeCuido.swiftpm`](MeCui
 | 💻 **Mac** | Abre la carpeta `MeCuido.swiftpm` con **Xcode 15+** y ejecuta en un simulador de iPad |
 | 📱 **iPad** | Copia la carpeta `MeCuido.swiftpm` a **Swift Playgrounds 4.4+** y toca ▶︎ |
 
-Requiere **iPadOS 17**.
+Requiere **iPadOS 17**. Para instalarla en un iPad real desde Xcode (firma con cuenta gratuita, Modo de
+desarrollador): [`docs/instalar-en-ipad.md`](docs/instalar-en-ipad.md).
 
 **Pruebas de la lógica:** desde la raíz del repositorio, `swift test` (Mac o Linux).
 
