@@ -154,13 +154,16 @@ private struct StepGuideContent: View {
             // Si la app pasa a segundo plano, el temporizador se detiene (ver tick) y la voz calla.
             if phase != .active { speech.stop() }
         }
-        .fullScreenCover(isPresented: $showCelebration) {
+        // Se sale de la guía hasta que la celebración terminó de cerrarse: si la guía se quita
+        // mientras la celebración sigue en pantalla, esta pierde sus stores y la app se cierra.
+        .fullScreenCover(isPresented: $showCelebration, onDismiss: onExit) {
             CelebrationView(accessory: newAccessory,
                             after: routines.plan(for: routine).afterActivity,
                             newStickers: newStickers) {
                 showCelebration = false
-                onExit()
             }
+            .environment(settings)
+            .environment(progress)
         }
     }
 
