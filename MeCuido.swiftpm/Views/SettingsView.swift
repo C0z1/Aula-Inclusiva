@@ -65,6 +65,14 @@ private struct SettingsForm: View {
                     Text("Si se apaga la lectura automática, el botón «Escuchar de nuevo» sigue disponible. Los pasos con voz grabada por un familiar usan esa grabación.")
                 }
 
+                Section {
+                    Toggle("Minijuego antes de las rutinas", isOn: $settings.miniGames)
+                } header: {
+                    Text("Minijuegos")
+                } footer: {
+                    Text("En «Mis pasos» aparece «¿Qué sigue?»: ordenar los pasos tocándolos. Es opcional, corto y no se puede perder; no cambia el progreso de la rutina.")
+                }
+
                 RemindersSection()
 
                 Section {

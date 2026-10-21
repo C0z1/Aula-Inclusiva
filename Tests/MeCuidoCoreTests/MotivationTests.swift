@@ -89,7 +89,7 @@ final class MotivationTests: XCTestCase {
         let progress = ProgressStore(defaults: makeTestDefaults())
         let album = progress.album(for: Routine.all)
         XCTAssertTrue(album.allSatisfy { !$0.isEarned })
-        XCTAssertEqual(album.count, 2 + Routine.all.count, "Una meta por serie")
+        XCTAssertEqual(album.count, 3 + Routine.all.count, "Una meta por serie (total, pasos, juegos y cada rutina)")
     }
 
     func testFinishingRevealsNewStickers() {

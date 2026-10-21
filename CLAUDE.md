@@ -65,7 +65,8 @@ MeCuido.swiftpm/
 │   ├── SettingsStore.swift     @Observable: ritmo, voz (autoNarration, slowSpeech, voiceIdentifier),
 │   │                           soundEffects, recordatorios
 │   ├── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
-│   └── Chime.swift             Campanita de logro como WAV en memoria (probada en ChimeTests)
+│   ├── Chime.swift             Campanita de logro como WAV en memoria (probada en ChimeTests)
+│   └── Games/                  GameKind (ids estables), SequenceGame («¿Qué sigue?»), GameLines (frases)
 ├── Services/
 │   ├── SpeechService.swift     Voz del sistema o grabación (narrate); con VoiceOver activo, anuncio.
 │   │                           Usar `settings.speak(_:)` / `settings.narrate(_:recording:)`
@@ -83,6 +84,7 @@ MeCuido.swiftpm/
     ├── CelebrationView.swift   fullScreenCover al terminar: frase, mascota, accesorio, estampas nuevas
     ├── AvatarPickerView.swift  Sheet «Mi mascota»: nombre, mascota, accesorios, fondos
     ├── AchievementsView.swift  Sheet «Mis logros» (álbum de estampas)
+    ├── Games/                  SequenceGameView (Route.game; al salir, path.removeLast())
     ├── AdultGateView.swift     Pregunta + teclado grande antes de los ajustes
     ├── SettingsView.swift      Sheet de adultos (long press 2 s → AdultGateView → SettingsForm)
     ├── Admin/                  RoutinesAdminView, RoutineEditorView, StepEditorView,
@@ -136,6 +138,8 @@ personalizados: `custom-<uuid>` y pasos `<idRutina>.<8 hex>`.
 - Motivación: los contadores y logros solo suben; nada de rachas, vidas ni comparaciones. Al
   agregar accesorios o fondos, no subir el `medalsRequired` de los existentes. Frases de ánimo
   nuevas van en `Encouragement` (positivas, neutrales en género).
+- Minijuegos: reglas en `docs/plan-minijuegos-y-calidad.md` (opcionales, sin perder, nunca sustituyen
+  un paso). Solo si `settings.miniGames`; al terminar, `progress.finishGame()` (no da medallas).
 - Sonidos: `settings.play(.stepDone)` / `settings.play(.routineDone)` (respeta el ajuste). Solo
   sonidos de logro; nunca de error, alarma o tiempo agotado.
 - Lógica con estado (temporizadores, reglas de progreso) va en modelos sin SwiftUI, no en la vista.

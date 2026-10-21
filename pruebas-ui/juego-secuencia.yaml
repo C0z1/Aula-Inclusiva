@@ -1,0 +1,24 @@
+# «¿Qué sigue?»: dos toques fuera de orden (pista y luego resaltado), ordenar todo y volver a «Mis pasos».
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- tapOn: ".*Lavarme las manos.*"
+- tapOn: ".*qué sigue.*"
+- assertVisible: ".*Cuál va primero.*"
+- takeScreenshot: capturas/juego-secuencia
+- tapOn: "Enjuagar y secar"
+- assertVisible: ".*Ese va después.*"
+- tapOn: "Tallar con jabón"
+- assertVisible: ".*Es este: Mojar las manos.*"
+- tapOn: "Mojar las manos"
+- tapOn: "Tallar con jabón"
+- tapOn: "Enjuagar y secar"
+- assertVisible: ".*Lo ordenaste todo.*"
+- takeScreenshot: capturas/juego-secuencia-fin
+- tapOn: ".*A hacer mi rutina.*"
+- assertVisible: ".*Empezar.*"
+# Salir a la mitad con «Listo» no cambia nada.
+- tapOn: ".*qué sigue.*"
+- tapOn: "Listo"
+- assertVisible: ".*Empezar.*"

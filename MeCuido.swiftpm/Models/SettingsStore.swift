@@ -58,6 +58,11 @@ final class SettingsStore {
         didSet { defaults.set(remindersEnabled, forKey: Self.remindersKey) }
     }
 
+    /// Botón de minijuego antes de las rutinas («¿Qué sigue?»). Siempre opcional para el niño.
+    var miniGames: Bool {
+        didSet { defaults.set(miniGames, forKey: Self.miniGamesKey) }
+    }
+
     /// Hora de recordatorio por momento, en minutos desde la medianoche.
     private(set) var reminderMinutes: [DayMoment: Int]
 
@@ -69,6 +74,7 @@ final class SettingsStore {
     private static let autoNarrationKey = "settings.autoNarration"
     private static let slowSpeechKey = "settings.slowSpeech"
     private static let soundEffectsKey = "settings.soundEffects"
+    private static let miniGamesKey = "settings.miniGames"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -78,6 +84,7 @@ final class SettingsStore {
         self.soundEffects = defaults.object(forKey: Self.soundEffectsKey) as? Bool ?? true
         self.voiceIdentifier = defaults.string(forKey: Self.voiceKey)
         self.remindersEnabled = defaults.bool(forKey: Self.remindersKey)
+        self.miniGames = defaults.object(forKey: Self.miniGamesKey) as? Bool ?? true
         let stored = defaults.dictionary(forKey: Self.reminderMinutesKey) as? [String: Int] ?? [:]
         self.reminderMinutes = Dictionary(uniqueKeysWithValues: stored.compactMap { key, value in
             DayMoment(rawValue: key).map { ($0, value) }

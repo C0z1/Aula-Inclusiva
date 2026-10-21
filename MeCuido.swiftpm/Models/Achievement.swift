@@ -19,13 +19,15 @@ enum AchievementCatalog {
     static let routineMilestones = [1, 3, 5, 10, 20, 30, 50, 100]
     static let totalMilestones = [1, 5, 10, 25, 50, 100, 200]
     static let stepMilestones = [10, 30, 60, 100, 200, 500]
+    static let gameMilestones = [5, 15, 30, 60]
 
     /// Álbum completo: todas las estampas ganadas y, en cada serie, la siguiente por ganar.
     static func album(
         routines: [Routine],
         timesDone: (Routine) -> Int,
         totalRoutines: Int,
-        totalSteps: Int
+        totalSteps: Int,
+        gamesPlayed: Int = 0
     ) -> [Achievement] {
         var album: [Achievement] = []
         album += series(id: "total", milestones: totalMilestones, current: totalRoutines, symbol: "star.fill") { goal in
@@ -33,6 +35,9 @@ enum AchievementCatalog {
         }
         album += series(id: "pasos", milestones: stepMilestones, current: totalSteps, symbol: "figure.walk") { goal in
             ("\(goal) pasos", "Pasos hechos en el mundo real")
+        }
+        album += series(id: "juegos", milestones: gameMilestones, current: gamesPlayed, symbol: "puzzlepiece.fill") { goal in
+            (goal == gameMilestones[0] ? "Mente curiosa" : "\(goal) juegos", "Minijuegos terminados")
         }
         for routine in routines {
             album += series(id: "rutina.\(routine.id)", milestones: routineMilestones,

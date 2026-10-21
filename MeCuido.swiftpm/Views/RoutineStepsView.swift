@@ -5,6 +5,7 @@ struct RoutineStepsView: View {
     let routine: Routine
     @Environment(ProgressStore.self) private var progress
     @Environment(RoutineStore.self) private var routines
+    @Environment(SettingsStore.self) private var settings
 
     var body: some View {
         let pending = progress.nextPendingIndex(in: routine)
@@ -59,6 +60,16 @@ struct RoutineStepsView: View {
                           systemImage: "play.circle.fill")
                 }
                 .buttonStyle(.primary)
+
+                // Opcional y secundario: «¡Empezar!» sigue siendo lo principal.
+                if settings.miniGames, let game = GameKind.warmUp(for: routine) {
+                    NavigationLink(value: Route.game(game, routine)) {
+                        Label(game.invitation, systemImage: game.symbol)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.secondary)
+                    .accessibilityHint("Un juego corto para recordar el orden de los pasos")
+                }
             }
         }
         .padding(Theme.padding)

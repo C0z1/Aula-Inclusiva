@@ -3,6 +3,8 @@ import SwiftUI
 enum Route: Hashable {
     case routine(Routine)
     case guide(Routine, startIndex: Int)
+    /// Minijuego antes de la rutina; al salir se vuelve a «Mis pasos».
+    case game(GameKind, Routine)
 }
 
 /// Pantalla 1: Agenda principal y avatar.
@@ -92,6 +94,13 @@ struct HomeView: View {
                 case .guide(let routine, let startIndex):
                     StepGuideView(routine: routine, startIndex: startIndex) {
                         path.removeAll()
+                    }
+                case .game(let kind, let routine):
+                    switch kind {
+                    case .sequence:
+                        SequenceGameView(routine: routine) {
+                            if !path.isEmpty { path.removeLast() }
+                        }
                     }
                 }
             }

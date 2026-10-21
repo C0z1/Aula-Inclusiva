@@ -18,6 +18,8 @@ final class ProgressStore {
     /// Nombre que le puso el niño; vacío = el nombre de fábrica de la mascota.
     private(set) var petName: String
     private(set) var backdropID: String
+    /// Minijuegos terminados (solo sube; no dan medallas, sí una estampa).
+    private(set) var gamesPlayed: Int
 
     private let defaults: UserDefaults
     private static let medalsKey = "medals"
@@ -29,6 +31,7 @@ final class ProgressStore {
     private static let petKey = "pet.id"
     private static let petNameKey = "pet.name"
     private static let backdropKey = "backdrop"
+    private static let gamesPlayedKey = "gamesPlayed"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -42,6 +45,7 @@ final class ProgressStore {
         self.petID = defaults.string(forKey: Self.petKey) ?? Pet.all[0].id
         self.petName = defaults.string(forKey: Self.petNameKey) ?? ""
         self.backdropID = defaults.string(forKey: Self.backdropKey) ?? Backdrop.all[0].id
+        self.gamesPlayed = defaults.integer(forKey: Self.gamesPlayedKey)
     }
 
     func isCompleted(_ step: RoutineStep) -> Bool {
@@ -108,11 +112,16 @@ final class ProgressStore {
 
     func album(for routines: [Routine]) -> [Achievement] {
         AchievementCatalog.album(routines: routines, timesDone: timesDone,
-                                 totalRoutines: totalRoutinesDone, totalSteps: stepsDone)
+                                 totalRoutines: totalRoutinesDone, totalSteps: stepsDone, gamesPlayed: gamesPlayed)
     }
 
     func earnedAchievementIDs(for routines: [Routine]) -> Set<String> {
         Set(album(for: routines).filter(\.isEarned).map(\.id))
+    }
+
+    func finishGame() {
+        gamesPlayed += 1
+        defaults.set(gamesPlayed, forKey: Self.gamesPlayedKey)
     }
 
     // MARK: - Mascota
