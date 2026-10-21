@@ -168,6 +168,7 @@ cada fase debe dejar la app usable de principio a fin.
 | 2 | 0.4 | Agenda real: momentos del día, «Ahora toca», tablero *Primero → Después* |
 | 3 | 0.5 | Contenido propio: pictogramas ilustrados, fotos de los objetos reales, voz grabada, sonidos |
 | 4 | 0.6 | Mascota y motivación sin castigo: nombre, reacciones, álbum de logros acumulativo |
+| 4b | 0.6.x | Estabilidad, recorridos en simulador (Maestro) y minijuegos (`docs/plan-minijuegos-y-calidad.md`) |
 | 5 | 0.7 | Perfiles de niños (iPad compartido en aula) y bitácora para adultos con exportación PDF |
 | 6 | 0.8 | Accesibilidad avanzada: Switch/Voice Control, alto contraste, modo oscuro, auditoría |
 | 7 | 0.9 | Validación con niños del rango de edad y ajustes por hallazgos |

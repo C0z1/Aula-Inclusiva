@@ -157,6 +157,19 @@ Objetivo: pictogramas más claros y conectados con los objetos reales del niño.
 
 ---
 
+## Fase 4b — v0.6.x · Estabilidad, pruebas en simulador y minijuegos
+
+Plan completo, reglas y criterios en [`plan-minijuegos-y-calidad.md`](plan-minijuegos-y-calidad.md).
+
+- [ ] E0 · v0.6.1 — Cerrar la estabilidad (cierres corregidos; falta Maestro en verde y prueba en iPad real).
+- [ ] E1 · v0.6.2 — Recorridos de Maestro para todas las pantallas; capturas reales.
+- [ ] E2 · v0.6.3 — Motor de juegos + «¿Qué sigue?» en «Mis pasos»; interruptor en Ajustes.
+- [ ] E3 · v0.6.4 — Memorama y clasificar (mochila, botiquín).
+- [ ] E4 · v0.6.5 — Burbujas y «Juega con tu mascota» en la celebración.
+- [ ] E5 · v0.6.6 — Pulido de accesibilidad, rendimiento y validación rápida con niños.
+
+---
+
 ## Fase 5 — v0.7 · Perfiles y bitácora para adultos
 
 - [ ] Varios perfiles de niño en un mismo iPad (uso en aula): selector con avatar y nombre;
