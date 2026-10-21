@@ -70,7 +70,7 @@ Objetivo: que cada familia o maestra adapte las rutinas a la casa o al aula del 
 - [x] Rutinas incluidas: se pueden ocultar y duplicar, no editar ni borrar.
 - [x] **(Decidido)** Número de pasos: incluidas = 3; personalizadas = 1 a 5, recomendado 3. Una
       rutina sin pasos no aparece en la agenda del niño.
-- [x] Gate de adultos: tras el long press, una multiplicación (12–29 × 3–9) con teclado propio de
+- [x] Gate de adultos: tras el long press, una multiplicación (11–15 × 2–5) con teclado propio de
       teclas de 96×72 pt. Si falla, pregunta nueva, sin rojo.
 - [x] Respaldo: exportar (`fileExporter`) e importar (`fileImporter`) un JSON, sin red. Importar
       reemplaza por id, nunca toca las incluidas y rechaza respaldos de versiones más nuevas.

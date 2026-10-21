@@ -1,6 +1,6 @@
 import Foundation
 
-/// Verificación para entrar a los ajustes de adultos: una multiplicación de dos cifras por una.
+/// Verificación para entrar a los ajustes de adultos: una multiplicación fácil para un adulto (p. ej. 13 × 4).
 /// Evita que el niño cambie ajustes por accidente (y cumple el «parental gate» de App Store).
 struct AdultGate: Equatable {
     let left: Int
@@ -11,17 +11,17 @@ struct AdultGate: Equatable {
     var spokenQuestion: String { "¿Cuánto es \(left) por \(right)?" }
 
     /// Máximo de cifras que acepta la respuesta.
-    static let maxDigits = 3
+    static let maxDigits = 2
 
     init(left: Int, right: Int) {
         self.left = left
         self.right = right
     }
 
-    /// Pregunta nueva: 12…29 × 3…9 (resultado de dos o tres cifras).
+    /// Pregunta nueva: 11…15 × 2…5 (resultado de dos cifras).
     static func random<G: RandomNumberGenerator>(using generator: inout G) -> AdultGate {
-        AdultGate(left: Int.random(in: 12...29, using: &generator),
-                  right: Int.random(in: 3...9, using: &generator))
+        AdultGate(left: Int.random(in: 11...15, using: &generator),
+                  right: Int.random(in: 2...5, using: &generator))
     }
 
     static func random() -> AdultGate {

@@ -157,10 +157,10 @@ final class RoutineStoreTests: XCTestCase {
 
 final class AdultGateTests: XCTestCase {
     func testAnswerChecking() {
-        let gate = AdultGate(left: 17, right: 6)
-        XCTAssertTrue(gate.isCorrect("102"))
-        XCTAssertTrue(gate.isCorrect(" 102 "))
-        XCTAssertFalse(gate.isCorrect("103"))
+        let gate = AdultGate(left: 13, right: 4)
+        XCTAssertTrue(gate.isCorrect("52"))
+        XCTAssertTrue(gate.isCorrect(" 52 "))
+        XCTAssertFalse(gate.isCorrect("53"))
         XCTAssertFalse(gate.isCorrect(""))
     }
 
@@ -168,8 +168,8 @@ final class AdultGateTests: XCTestCase {
         var generator = SystemRandomNumberGenerator()
         for _ in 0..<200 {
             let gate = AdultGate.random(using: &generator)
-            XCTAssertTrue((12...29).contains(gate.left))
-            XCTAssertTrue((3...9).contains(gate.right))
+            XCTAssertTrue((11...15).contains(gate.left))
+            XCTAssertTrue((2...5).contains(gate.right))
             XCTAssertLessThanOrEqual(String(gate.answer).count, AdultGate.maxDigits)
         }
     }
