@@ -31,6 +31,31 @@ final class RoutineStoreTests: XCTestCase {
         XCTAssertEqual(makeStore().visibleRoutines.count, Routine.all.count)
     }
 
+    func testCorruptFileIsSetAsideNotOverwritten() throws {
+        let folder = fileURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("no es json".utf8).write(to: fileURL)
+
+        let store = makeStore()
+        store.setHidden(true, for: Routine.all[0]) // guarda un archivo nuevo
+
+        let copies = try FileManager.default.contentsOfDirectory(atPath: folder.path)
+            .filter { $0.hasPrefix("rutinas.ilegible-") }
+        XCTAssertEqual(copies.count, 1)
+        let kept = try Data(contentsOf: folder.appendingPathComponent(copies[0]))
+        XCTAssertEqual(String(decoding: kept, as: UTF8.self), "no es json")
+    }
+
+    func testDuplicateStepIDsAreMadeUnique() {
+        var routine = Routine.all[0]
+        let first = routine.steps[0]
+        routine.steps[1] = RoutineStep(id: first.id, title: "Repetido", instruction: "", symbol: first.symbol,
+                                       suggestedSeconds: 30)
+        let ids = RoutineStore.normalized(routine).steps.map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+        XCTAssertEqual(ids[0], first.id, "El primero conserva su id (y su progreso)")
+    }
+
     func testHidingBuiltInPersists() {
         let store = makeStore()
         store.setHidden(true, for: Routine.all[0])
