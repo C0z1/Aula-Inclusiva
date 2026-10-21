@@ -59,8 +59,15 @@ final class RoutineStore {
 
     init(fileURL: URL = RoutineStore.defaultFileURL) {
         self.fileURL = fileURL
-        let snapshot = (try? Data(contentsOf: fileURL))
-            .flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
+        let data = try? Data(contentsOf: fileURL)
+        let snapshot = data.flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
+        if data != nil, snapshot == nil {
+            // Archivo dañado o de una versión más nueva: se aparta en lugar de sobrescribirlo
+            // con la lista vacía, para no perder las rutinas que hizo el adulto.
+            let copy = fileURL.deletingPathExtension()
+                .appendingPathExtension("ilegible-\(Int(Date.now.timeIntervalSince1970)).json")
+            try? FileManager.default.moveItem(at: fileURL, to: copy)
+        }
         customRoutines = snapshot?.customRoutines ?? []
         hiddenIDs = Set(snapshot?.hiddenIDs ?? [])
         plans = snapshot?.plans ?? [:]
@@ -175,8 +182,15 @@ final class RoutineStore {
         var routine = routine
         let title = routine.title.trimmingCharacters(in: .whitespacesAndNewlines)
         routine.title = title.isEmpty ? "Mi rutina" : title
+        var seenIDs = Set<String>()
         routine.steps = routine.steps.prefix(maxSteps).enumerated().map { index, step in
             var step = step
+            // Ids repetidos (p. ej. un respaldo editado a mano) confunden a las listas de SwiftUI.
+            if !seenIDs.insert(step.id).inserted {
+                step = RoutineStep(id: newStepID(in: routine.id), title: step.title, instruction: step.instruction,
+                                   symbol: step.symbol, suggestedSeconds: step.suggestedSeconds)
+                seenIDs.insert(step.id)
+            }
             let stepTitle = step.title.trimmingCharacters(in: .whitespacesAndNewlines)
             step.title = stepTitle.isEmpty ? "Paso \(index + 1)" : stepTitle
             step.instruction = step.instruction.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -234,7 +248,8 @@ final class RoutineStore {
                                                     withIntermediateDirectories: true)
             try JSONEncoder().encode(snapshot).write(to: fileURL, options: .atomic)
         } catch {
-            assertionFailure("No se pudieron guardar las rutinas: \(error)")
+            // Sin espacio u otro error de disco: los cambios siguen en memoria y se reintenta
+            // en el próximo cambio. No se detiene la app (assertionFailure la cerraría en Debug).
         }
     }
 
