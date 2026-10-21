@@ -25,6 +25,9 @@ appId: mx.aulainclusiva.mecuido
 # Mascota: elegir una ilustrada.
 - tapOn: "Tu mascota.*"
 - assertVisible: "Mi mascota"
+- scrollUntilVisible:
+    element: "Panda"
+    direction: DOWN
 - tapOn: "Panda"
 - takeScreenshot: capturas/5-mascota
 - tapOn: "Listo"
