@@ -24,8 +24,7 @@ appId: mx.aulainclusiva.mecuido
     element: "Borrar rutina"
     direction: DOWN
 - tapOn: "Borrar rutina"
-- tapOn:
-    text: "Borrar rutina"
-    index: 1
+# En iPad la confirmación sale como globo con su propio botón «Borrar rutina».
+- tapOn: "Borrar rutina"
 - assertVisible: "Nueva rutina"
 - assertNotVisible: "Mi rutina.*"
