@@ -1,0 +1,25 @@
+# Hace una rutina completa: abrirla, «¡Hecho!» en cada paso, revisión si la hay, celebración e inicio.
+appId: mx.aulainclusiva.mecuido
+---
+- tapOn: ".*${RUTINA}.*"
+- tapOn: ".*(Empezar|Seguir con el paso|Termina tu rutina).*"
+- takeScreenshot: capturas/2-guia
+- repeat:
+    times: 10 # tope por si algo no avanza
+    while:
+      notVisible: ".*Volver al inicio.*"
+    commands:
+      - runFlow:
+          when:
+            visible: "¡Hecho!"
+          commands:
+            - tapOn: "¡Hecho!"
+      - runFlow:
+          when:
+            visible: ".*Sí, hice todo.*"
+          commands:
+            - takeScreenshot: capturas/3-revision
+            - tapOn: ".*Sí, hice todo.*"
+- takeScreenshot: capturas/4-celebracion
+- tapOn: ".*Volver al inicio.*"
+- assertVisible: "Mis logros"

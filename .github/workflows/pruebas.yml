@@ -72,11 +72,34 @@ jobs:
             exit 1
           fi
           echo "::notice::La app sigue abierta después de 20 s"
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Recorrido tocando la pantalla (pruebas-ui/): rutinas hasta la celebración, mascota y ajustes.
+      - name: Recorrido completo con Maestro
+        working-directory: MeCuido.swiftpm
+        run: |
+          set -o pipefail
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          export PATH="$PATH:$HOME/.maestro/bin"
+          maestro --device "$UDID" test ../pruebas-ui/recorrido.yaml --test-output-dir "$RUNNER_TEMP/maestro" 2>&1 | tee maestro.log || {
+            grep -E "FAILED|Assertion|not found|crash|✗" maestro.log | head -20 | sed 's/^/::error::/'
+            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*.ips' -o -name '*.crash' \) -print0               | xargs -0 -I{} sh -c 'head -c 6000 "{}"' | sed 's/^/::warning::/' | head -80
+            exit 1
+          }
+          echo "::notice::Recorrido completo sin errores"
 
       - name: Guardar capturas
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: capturas-ipad
-          path: MeCuido.swiftpm/capturas
+          path: |
+            MeCuido.swiftpm/capturas
+            pruebas-ui/capturas
+            ${{ runner.temp }}/maestro
           if-no-files-found: ignore

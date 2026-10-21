@@ -1,0 +1,45 @@
+# Recorrido completo en el simulador de iPad con Maestro (lo corre el CI).
+# Toca la app como lo haría un niño o un adulto; si se cierra en cualquier paso, la prueba falla.
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Mis logros"
+- takeScreenshot: capturas/1-inicio
+
+# Dos rutinas seguidas hasta la celebración y de regreso al inicio (donde se cerraba la app).
+- runFlow:
+    file: rutina.yaml
+    env:
+      RUTINA: "Atarme las agujetas"
+- runFlow:
+    file: rutina.yaml
+    env:
+      RUTINA: "Ordenar mi mochila"
+- runFlow:
+    file: rutina.yaml
+    env:
+      RUTINA: "Atarme las agujetas"
+- assertVisible: ".*3 medallas.*"
+
+# Mascota: elegir una ilustrada.
+- tapOn: "Tu mascota.*"
+- assertVisible: "Mi mascota"
+- tapOn: "Panda"
+- takeScreenshot: capturas/5-mascota
+- tapOn: "Listo"
+
+# Ajustes para adultos: mantener presionado el engrane y resolver la multiplicación.
+- longPressOn: "Ajustes para adultos"
+- copyTextFrom: ".*Cuánto es.*"
+- evalScript: ${output.respuesta = String(maestro.copiedText.match(/\d+/g).reduce(function (a, b) { return a * b }, 1))}
+- tapOn: ${output.respuesta.charAt(0)}
+- tapOn: ${output.respuesta.charAt(1)}
+- takeScreenshot: capturas/6-pregunta-adultos
+- tapOn: "Comprobar"
+- assertVisible: "Rutinas.*"
+- takeScreenshot: capturas/7-ajustes
+- tapOn: "Rutinas.*"
+- tapOn: "Nueva rutina"
+- assertVisible: "Pasos"
+- takeScreenshot: capturas/8-editor
