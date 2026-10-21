@@ -10,7 +10,7 @@ struct AdultGate: Equatable {
     var question: String { "¿Cuánto es \(left) × \(right)?" }
     var spokenQuestion: String { "¿Cuánto es \(left) por \(right)?" }
 
-    /// Máximo de cifras que acepta la respuesta.
+    /// Cifras de toda respuesta; al escribirlas, la vista revisa sola.
     static let maxDigits = 2
 
     init(left: Int, right: Int) {

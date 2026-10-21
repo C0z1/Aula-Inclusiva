@@ -95,6 +95,9 @@ struct AdultGateView: View {
             Button {
                 showRetry = false
                 if input.count < AdultGate.maxDigits { input.append(key) }
+                // Todas las respuestas tienen dos cifras: se revisa sola, sin buscar «Comprobar»
+                // (en ventanas bajas esa tecla queda fuera de la vista).
+                if input.count == AdultGate.maxDigits { submit() }
             } label: {
                 keyFace(Text(key).font(.title.bold()), fill: .white, foreground: Theme.primary)
             }
