@@ -1,3 +1,4 @@
+import ImageIO
 import UIKit
 
 /// Prepara las fotos de los objetos reales: tamaño razonable y JPEG comprimido.
@@ -19,8 +20,16 @@ enum PhotoProcessing {
         return resized.jpegData(compressionQuality: quality)
     }
 
+    /// Reduce al leer: abrir completa una foto de 48 MP ocupa ~200 MB y el sistema puede cerrar la app.
     static func jpegData(from data: Data) -> Data? {
-        UIImage(data: data).flatMap { jpegData(from: $0) }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true, // respeta la orientación
+            kCGImageSourceThumbnailMaxPixelSize: maxDimension
+        ]
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return UIImage(cgImage: thumbnail).jpegData(compressionQuality: 0.8)
     }
 }
 
