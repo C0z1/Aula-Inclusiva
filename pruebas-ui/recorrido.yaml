@@ -9,15 +9,15 @@ appId: mx.aulainclusiva.mecuido
 
 # Dos rutinas seguidas hasta la celebración y de regreso al inicio (donde se cerraba la app).
 - runFlow:
-    file: rutina.yaml
+    file: subflujos/rutina.yaml
     env:
       RUTINA: "Atarme las agujetas"
 - runFlow:
-    file: rutina.yaml
+    file: subflujos/rutina.yaml
     env:
       RUTINA: "Ordenar mi mochila"
 - runFlow:
-    file: rutina.yaml
+    file: subflujos/rutina.yaml
     env:
       RUTINA: "Atarme las agujetas"
 - assertVisible: ".*3 medallas.*"
@@ -32,14 +32,8 @@ appId: mx.aulainclusiva.mecuido
 - takeScreenshot: capturas/5-mascota
 - tapOn: "Listo"
 
-# Ajustes para adultos: mantener presionado el engrane y resolver la multiplicación.
-- longPressOn: "Ajustes para adultos"
-- copyTextFrom: ".*Cuánto es.*"
-- evalScript: ${output.respuesta = String(maestro.copiedText.match(/\d+/g).reduce(function (a, b) { return a * b }, 1))}
-- tapOn: ${output.respuesta.charAt(0)}
-- takeScreenshot: capturas/6-pregunta-adultos
-- tapOn: ${output.respuesta.charAt(1)} # con la segunda cifra se revisa sola
-- assertVisible: "Rutinas.*"
+# Ajustes para adultos (engrane + multiplicación).
+- runFlow: subflujos/ajustes.yaml
 - takeScreenshot: capturas/7-ajustes
 - tapOn: "Rutinas.*"
 - tapOn: "Nueva rutina"

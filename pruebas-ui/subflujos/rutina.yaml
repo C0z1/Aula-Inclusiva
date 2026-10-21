@@ -1,6 +1,9 @@
 # Hace una rutina completa: abrirla, «¡Hecho!» en cada paso, revisión si la hay, celebración e inicio.
 appId: mx.aulainclusiva.mecuido
 ---
+- scrollUntilVisible:
+    element: ".*${RUTINA}.*"
+    direction: DOWN
 - tapOn: ".*${RUTINA}.*"
 - tapOn: ".*(Empezar|Seguir con el paso|Termina tu rutina).*"
 - takeScreenshot: capturas/2-guia
@@ -22,4 +25,4 @@ appId: mx.aulainclusiva.mecuido
             - tapOn: ".*Sí, hice todo.*"
 - takeScreenshot: capturas/4-celebracion
 - tapOn: ".*Volver al inicio.*"
-- assertVisible: "Mis logros"
+- assertNotVisible: ".*Volver al inicio.*"

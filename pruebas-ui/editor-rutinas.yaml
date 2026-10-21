@@ -1,0 +1,31 @@
+# Adultos: crear una rutina, agregar y borrar pasos, abrir un paso y borrar la rutina.
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- runFlow: subflujos/ajustes.yaml
+- tapOn: "Rutinas.*"
+- tapOn: "Nueva rutina"
+- tapOn: "Agregar paso"
+- tapOn: "Agregar paso"
+- assertVisible: ".*Paso 3.*"
+# Botón del sistema: debe salir en español (defaultLocalization: "es").
+- assertVisible: "Editar"
+- swipe:
+    from: ".*Paso 3.*"
+    direction: LEFT
+- tapOn: "(Eliminar|Borrar)"
+- assertNotVisible: ".*Paso 3.*"
+- tapOn: ".*Paso 2.*"
+- assertVisible: "Tiempo sugerido.*"
+- takeScreenshot: capturas/editor-paso
+- tapOn: "Mi rutina"
+- scrollUntilVisible:
+    element: "Borrar rutina"
+    direction: DOWN
+- tapOn: "Borrar rutina"
+- tapOn:
+    text: "Borrar rutina"
+    index: 1
+- assertVisible: "Nueva rutina"
+- assertNotVisible: "Mi rutina.*"

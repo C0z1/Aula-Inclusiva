@@ -1,0 +1,33 @@
+# Guía: todos los controles de un paso (escuchar, pausa, más tiempo, paso anterior) y terminar.
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- tapOn: ".*Lavarme las manos.*"
+- tapOn: ".*Empezar.*"
+- scrollUntilVisible:
+    element: "Escuchar de nuevo"
+    direction: DOWN
+- tapOn: "Escuchar de nuevo"
+- tapOn: "Pausa"
+- tapOn: "Seguir"
+- tapOn: "Más tiempo"
+- takeScreenshot: capturas/guia-controles
+- tapOn: "¡Hecho!"
+- scrollUntilVisible:
+    element: "Paso anterior"
+    direction: DOWN
+- tapOn: "Paso anterior"
+- scrollUntilVisible:
+    element: "Paso 1 de 3"
+    direction: UP
+# Repasar un paso ya hecho no lo cuenta dos veces: lleva al siguiente pendiente.
+- tapOn: "¡Hecho!"
+- scrollUntilVisible:
+    element: "Paso 2 de 3"
+    direction: UP
+- tapOn: "¡Hecho!"
+- tapOn: "¡Hecho!"
+- assertVisible: ".*Volver al inicio.*"
+- tapOn: ".*Volver al inicio.*"
+- assertVisible: ".*1 medalla.*"

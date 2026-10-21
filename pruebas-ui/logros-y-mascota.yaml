@@ -1,0 +1,31 @@
+# Álbum de logros y todas las secciones de «Mi mascota» (nombre, mascota, accesorio, fondo).
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- tapOn: "Mis logros"
+- assertVisible: "Mis logros"
+- takeScreenshot: capturas/logros
+- tapOn: "Listo"
+- tapOn: "Tu mascota.*"
+# El campo del nombre (arriba) y la tarjeta de la mascota se llaman igual: el campo es el primero.
+- tapOn:
+    text: "Huellita"
+    index: 0
+- inputText: "Copito"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Leoncito"
+    direction: DOWN
+- tapOn: "Leoncito"
+- scrollUntilVisible:
+    element: "Nada"
+    direction: DOWN
+- tapOn: "Nada"
+- scrollUntilVisible:
+    element: "Cielo"
+    direction: DOWN
+- tapOn: "Cielo"
+- takeScreenshot: capturas/mascota
+- tapOn: "Listo"
+- assertVisible: "Tu mascota Copito"

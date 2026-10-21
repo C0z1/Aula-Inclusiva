@@ -1,0 +1,9 @@
+# Abre los ajustes de adultos: mantener presionado el engrane y resolver la multiplicación.
+appId: mx.aulainclusiva.mecuido
+---
+- longPressOn: "Ajustes para adultos"
+- copyTextFrom: ".*Cuánto es.*"
+- evalScript: ${output.respuesta = String(maestro.copiedText.match(/\d+/g).reduce(function (a, b) { return a * b }, 1))}
+- tapOn: ${output.respuesta.charAt(0)}
+- tapOn: ${output.respuesta.charAt(1)} # con la segunda cifra se revisa sola
+- assertVisible: "Rutinas.*"

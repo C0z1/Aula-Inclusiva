@@ -67,7 +67,7 @@ jobs:
           sleep 5
           if ! ps -p "$PID" > /dev/null; then
             echo "::error::La app se cerró después de abrirla"
-            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*.ips' -o -name '*.crash' \) -print0 \
+            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*Cuido*' -o -name 'AppModule*' \) -print0 \
               | xargs -0 -I{} sh -c 'head -c 6000 "{}"' | sed 's/^/::warning::/' | head -80
             exit 1
           fi
@@ -79,16 +79,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Recorrido tocando la pantalla (pruebas-ui/): rutinas hasta la celebración, mascota y ajustes.
-      - name: Recorrido completo con Maestro
+      # Recorridos tocando la pantalla (pruebas-ui/*.yaml): cada pantalla y botón de la app.
+      - name: Recorridos con Maestro
         working-directory: MeCuido.swiftpm
         run: |
           set -o pipefail
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           export PATH="$PATH:$HOME/.maestro/bin"
-          maestro --device "$UDID" test ../pruebas-ui/recorrido.yaml --test-output-dir "$RUNNER_TEMP/maestro" 2>&1 | tee maestro.log || {
+          {
+            maestro --device "$UDID" test ../pruebas-ui --exclude-tags texto-grande --test-output-dir "$RUNNER_TEMP/maestro" &&
+            # Mismo iPad con el texto de accesibilidad más grande.
+            xcrun simctl ui "$UDID" content_size accessibility-extra-extra-extra-large &&
+            maestro --device "$UDID" test ../pruebas-ui --include-tags texto-grande --test-output-dir "$RUNNER_TEMP/maestro-texto-grande"
+          } 2>&1 | tee maestro.log || {
             grep -E "FAILED|Assertion|not found|crash|✗" maestro.log | head -20 | sed 's/^/::error::/'
-            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*.ips' -o -name '*.crash' \) -print0               | xargs -0 -I{} sh -c 'head -c 6000 "{}"' | sed 's/^/::warning::/' | head -80
+            find ~/Library/Logs/DiagnosticReports -newer build.log \( -name '*Cuido*' -o -name 'AppModule*' \) -print0               | xargs -0 -I{} sh -c 'head -c 6000 "{}"' | sed 's/^/::warning::/' | head -80
             exit 1
           }
           echo "::notice::Recorrido completo sin errores"
@@ -102,4 +107,5 @@ jobs:
             MeCuido.swiftpm/capturas
             pruebas-ui/capturas
             ${{ runner.temp }}/maestro
+            ${{ runner.temp }}/maestro-texto-grande
           if-no-files-found: ignore

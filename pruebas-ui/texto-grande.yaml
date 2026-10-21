@@ -1,0 +1,12 @@
+# Con el texto más grande de accesibilidad (el CI lo activa antes): una rutina completa.
+appId: mx.aulainclusiva.mecuido
+tags:
+  - texto-grande
+---
+- launchApp:
+    clearState: true
+- takeScreenshot: capturas/texto-grande-inicio
+- runFlow:
+    file: subflujos/rutina.yaml
+    env:
+      RUTINA: "Lavarme las manos"

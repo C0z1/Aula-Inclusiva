@@ -1,0 +1,25 @@
+# Revisión final (la mochila la tiene activada): volver a un paso, repasarlo y confirmar.
+appId: mx.aulainclusiva.mecuido
+---
+- launchApp:
+    clearState: true
+- scrollUntilVisible:
+    element: ".*Ordenar mi mochila.*"
+    direction: DOWN
+- tapOn: ".*Ordenar mi mochila.*"
+- tapOn: ".*Empezar.*"
+- tapOn: "¡Hecho!"
+- tapOn: "¡Hecho!"
+- tapOn: "¡Hecho!"
+- assertVisible: ".*Hiciste todo.*"
+- takeScreenshot: capturas/revision
+- tapOn: "Paso 2: Guardar cuadernos y libros"
+- scrollUntilVisible:
+    element: "Paso 2 de 3"
+    direction: UP
+- tapOn: "¡Hecho!"
+- assertVisible: ".*Hiciste todo.*"
+- tapOn: ".*Sí, hice todo.*"
+- assertVisible: ".*Volver al inicio.*"
+- tapOn: ".*Volver al inicio.*"
+- assertVisible: ".*1 medalla.*"

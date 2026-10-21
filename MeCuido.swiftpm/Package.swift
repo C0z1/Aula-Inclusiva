@@ -9,6 +9,8 @@ import AppleProductTypes
 
 let package = Package(
     name: "MeCuido",
+    // Botones del sistema («Editar», «Cancelar», «Eliminar») en español aunque el iPad esté en otro idioma.
+    defaultLocalization: "es",
     platforms: [
         .iOS("17.0")
     ],
