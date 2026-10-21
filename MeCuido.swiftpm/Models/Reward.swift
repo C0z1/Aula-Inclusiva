@@ -34,14 +34,18 @@ struct Pet: Identifiable, Hashable {
     let symbol: String
     /// Nombre si el niño no le pone otro.
     let defaultName: String
+    /// Ilustración en `Assets.xcassets`; sin ella se dibuja `symbol`.
+    var image: String? = nil
 
     static let all: [Pet] = [
         Pet(id: "huellita", kind: "Huellita", symbol: "pawprint.fill", defaultName: "Huellita"),
-        Pet(id: "perrito", kind: "Perrito", symbol: "dog.fill", defaultName: "Canelo"),
-        Pet(id: "gatito", kind: "Gatito", symbol: "cat.fill", defaultName: "Michi"),
-        Pet(id: "conejito", kind: "Conejito", symbol: "hare.fill", defaultName: "Saltarín"),
-        Pet(id: "tortuga", kind: "Tortuga", symbol: "tortoise.fill", defaultName: "Calma"),
-        Pet(id: "pajarito", kind: "Pajarito", symbol: "bird.fill", defaultName: "Pío")
+        Pet(id: "perrito", kind: "Perrito", symbol: "dog.fill", defaultName: "Canelo", image: "mascota_perro"),
+        Pet(id: "gatito", kind: "Gatito", symbol: "cat.fill", defaultName: "Michi", image: "mascota_gato"),
+        Pet(id: "conejito", kind: "Conejito", symbol: "hare.fill", defaultName: "Saltarín", image: "mascota_conejo"),
+        Pet(id: "tortuga", kind: "Tortuga", symbol: "tortoise.fill", defaultName: "Calma", image: "mascota_tortuga"),
+        Pet(id: "pajarito", kind: "Pajarito", symbol: "bird.fill", defaultName: "Pío"),
+        Pet(id: "leoncito", kind: "Leoncito", symbol: "pawprint.fill", defaultName: "Rugi", image: "mascota_leon"),
+        Pet(id: "panda", kind: "Panda", symbol: "pawprint.fill", defaultName: "Bambú", image: "mascota_panda")
     ]
 
     static let nameMaxLength = 16

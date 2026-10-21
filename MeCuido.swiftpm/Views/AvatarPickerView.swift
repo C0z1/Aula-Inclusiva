@@ -31,7 +31,7 @@ struct AvatarPickerView: View {
 
                     section("Elige tu mascota") {
                         ForEach(Pet.all) { pet in
-                            tile(symbol: pet.symbol, title: pet.kind, isUnlocked: true,
+                            tile(symbol: pet.symbol, image: pet.image, title: pet.kind, isUnlocked: true,
                                  isSelected: progress.petID == pet.id, lockedText: nil) {
                                 progress.choosePet(pet)
                             }
@@ -90,15 +90,23 @@ struct AvatarPickerView: View {
         }
     }
 
-    private func tile(symbol: String, title: String, isUnlocked: Bool, isSelected: Bool, lockedText: String?,
+    private func tile(symbol: String, image: String? = nil, title: String, isUnlocked: Bool, isSelected: Bool, lockedText: String?,
                       symbolColor: Color = Theme.primary, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 12) {
-                Image(systemName: isUnlocked ? symbol : "lock.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(isUnlocked ? symbolColor : .secondary)
-                    .shadow(color: .black.opacity(symbolColor == Theme.primary ? 0 : 0.15), radius: 1)
-                    .frame(height: 56)
+                if let image, isUnlocked {
+                    Image(image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 56)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: isUnlocked ? symbol : "lock.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(isUnlocked ? symbolColor : .secondary)
+                        .shadow(color: .black.opacity(symbolColor == Theme.primary ? 0 : 0.15), radius: 1)
+                        .frame(height: 56)
+                }
                 Text(title)
                     .font(.body.bold())
                     .multilineTextAlignment(.center)

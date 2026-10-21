@@ -50,6 +50,7 @@ castigo y recompensas para su mascota. Proyecto de la materia **Aula Inclusiva**
 ```
 MeCuido.swiftpm/
 ├── App/MeCuidoApp.swift        Raíz: crea los stores, .fontDesign(.rounded), fuerza modo claro
+├── Assets.xcassets/            Ilustraciones de mascotas (`Pet.image`; si falta, se usa el SF Symbol)
 ├── Models/
 │   ├── Routine.swift           Routine / RoutineStep (structs Codable) + rutinas incluidas Routine.all
 │   ├── RoutineStore.swift      @Observable: rutinas personalizadas, ocultas y planes (JSON), respaldo

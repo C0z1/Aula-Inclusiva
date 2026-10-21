@@ -1,0 +1,6 @@
+{
+  "images" : [
+    { "filename" : "mascota_perro.png", "idiom" : "universal" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

@@ -14,13 +14,22 @@ struct AvatarView: View {
                 .fill(LinearGradient(colors: [Color(hex: backdrop.top), Color(hex: backdrop.bottom)],
                                      startPoint: .top, endPoint: .bottom))
                 .overlay(Circle().stroke(Theme.primary, lineWidth: max(size * 0.03, 2)))
-                .overlay(
-                    Image(systemName: pet.symbol)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(Theme.primary)
-                        .padding(size * 0.22)
-                )
+                .overlay {
+                    if let image = pet.image {
+                        // El recorte circular quita el borde de tarjeta de la ilustración y deja ver el fondo.
+                        Image(image)
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(Circle())
+                            .padding(size * 0.08)
+                    } else {
+                        Image(systemName: pet.symbol)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(Theme.primary)
+                            .padding(size * 0.22)
+                    }
+                }
                 .frame(width: size, height: size)
             if let accessory {
                 Image(systemName: accessory.symbol)
