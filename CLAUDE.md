@@ -64,13 +64,14 @@ MeCuido.swiftpm/
 │   │                           nombre, fondo, veces por rutina y pasos totales (solo suben)
 │   ├── SettingsStore.swift     @Observable: ritmo, voz (autoNarration, slowSpeech, voiceIdentifier),
 │   │                           soundEffects, recordatorios
-│   └── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
+│   ├── StepTimer.swift         @Observable: lógica del temporizador de un paso (sin UI)
+│   └── Chime.swift             Campanita de logro como WAV en memoria (probada en ChimeTests)
 ├── Services/
 │   ├── SpeechService.swift     Voz del sistema o grabación (narrate); con VoiceOver activo, anuncio.
 │   │                           Usar `settings.speak(_:)` / `settings.narrate(_:recording:)`
 │   ├── VoiceRecorder.swift     Grabación de instrucciones (AVAudioRecorder, máx. 20 s)
 │   ├── PhotoProcessing.swift   Redimensiona/comprime fotos; PhotoCache en memoria
-│   ├── SoundService.swift      Campanitas de logro generadas con AVAudioEngine (sin archivos)
+│   ├── SoundService.swift      Campanitas de logro (`Chime`) con AVAudioPlayer; nunca AVAudioEngine (cierra la app)
 │   ├── AudioSession.swift      Sesión de audio: reproducción hablada; grabación mientras se graba
 │   └── ReminderService.swift   Notificaciones locales + modificador .syncReminders() (en la raíz)
 ├── Theme/Theme.swift           Colores, espaciado, radios, minTarget, Color(hex:)
