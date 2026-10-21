@@ -39,6 +39,10 @@ struct CelebrationView: View {
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(Theme.primary)
 
+                Text(totalText)
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+
                 if let accessory {
                     Label("¡Desbloqueaste: \(accessory.name)!", systemImage: accessory.symbol)
                         .font(.title2.weight(.semibold))
@@ -86,7 +90,7 @@ struct CelebrationView: View {
         .background(Theme.background)
         .onAppear {
             withAnimation(reduceMotion ? nil : .spring(duration: 0.6, bounce: 0.5)) { appeared = true }
-            var message = "\(title) Ganaste una medalla. \(progress.displayPetName) está muy feliz."
+            var message = "\(title) Ganaste una medalla. \(progress.displayPetName) está muy feliz. \(totalText)"
             if let accessory { message += " Desbloqueaste: \(accessory.name)." }
             if !newStickers.isEmpty {
                 message += newStickers.count == 1 ? " Tienes una estampa nueva." : " Tienes \(newStickers.count) estampas nuevas."
@@ -96,6 +100,14 @@ struct CelebrationView: View {
                 settings.speak(message)
             }
         }
+    }
+}
+
+extension CelebrationView {
+    /// Lo que lleva acumulado (solo sube), para que vea todo lo que ya logró.
+    private var totalText: String {
+        let total = progress.totalRoutinesDone
+        return total == 1 ? "¡Es tu primera rutina terminada!" : "¡Ya terminaste \(total) rutinas!"
     }
 }
 

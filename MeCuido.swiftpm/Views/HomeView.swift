@@ -203,7 +203,7 @@ private struct RoutineCard: View {
                     .background(Theme.success.opacity(0.35), in: Capsule())
             }
             if completed > 0 {
-                Label("Vas en el paso \(completed + 1) de \(routine.steps.count)",
+                Label(completed >= routine.steps.count ? "¡Ya casi terminas!" : "Vas en el paso \(completed + 1) de \(routine.steps.count)",
                       systemImage: "arrow.forward.circle.fill")
                     .font(.body.bold())
                     .foregroundStyle(Theme.primary)
@@ -248,7 +248,7 @@ private struct NowCard: View {
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.leading)
                 if completed > 0 {
-                    Label("Vas en el paso \(completed + 1) de \(routine.steps.count)",
+                    Label(completed >= routine.steps.count ? "¡Ya casi terminas!" : "Vas en el paso \(completed + 1) de \(routine.steps.count)",
                           systemImage: "arrow.forward.circle.fill")
                         .font(.body.bold())
                         .foregroundStyle(Theme.primary)

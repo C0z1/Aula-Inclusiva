@@ -52,6 +52,8 @@ private struct StepGuideContent: View {
     @State private var newStickers: [Achievement] = []
     /// Última frase de ánimo, para no repetirla seguida.
     @State private var cheer: String?
+    /// Frase de calma cuando el temporizador llega a cero.
+    @State private var patience: String?
 
     private let speech = SpeechService.shared
 
@@ -96,8 +98,7 @@ private struct StepGuideContent: View {
                 controls
 
                 if timer.isFinished {
-                    Label("Tómate tu tiempo. Cuando termines, presiona ¡Hecho!",
-                          systemImage: "tortoise.fill")
+                    Label(patience ?? Encouragement.takeYourTime[0], systemImage: "tortoise.fill")
                         .font(.body.bold())
                         .padding(20)
                         .background(Theme.pause, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
@@ -243,8 +244,16 @@ private struct StepGuideContent: View {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(1))
             guard !showCelebration, !showReview, scenePhase == .active else { continue }
+            let wasFinished = timer.isFinished
             withAnimation { timer.tick() }
+            if !wasFinished, timer.isFinished { encourageToContinue() }
         }
+    }
+
+    /// Al llegar a cero el tiempo no pasa nada malo: solo se le anima a seguir a su ritmo.
+    private func encourageToContinue() {
+        patience = Encouragement.pick(from: Encouragement.takeYourTime, avoiding: patience)
+        if settings.autoNarration, let patience { settings.speak(patience) }
     }
 
     private func speakStep(prefix: String = "") {
@@ -362,8 +371,11 @@ private struct PetBuddy: View {
                     .overlay(Capsule().stroke(Theme.secondaryButton, lineWidth: 2))
                     .transition(.opacity)
             }
+            // Salto con escala: `symbolEffect` no anima las mascotas ilustradas.
             AvatarView(progress: progress, size: 72)
-                .symbolEffect(.bounce, value: reduceMotion ? 0 : trigger)
+                .phaseAnimator([1.0, 1.15, 1.0], trigger: reduceMotion ? 0 : trigger) { view, scale in
+                    view.scaleEffect(scale)
+                }
         }
         // La frase ya se dice en voz alta; VoiceOver no necesita repetirla.
         .accessibilityHidden(true)

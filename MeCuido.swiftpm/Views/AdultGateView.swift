@@ -9,7 +9,6 @@ struct AdultGateView: View {
     @State private var gate = AdultGate.random()
     @State private var input = ""
     @State private var showRetry = false
-    @State private var attempts = 0
 
     private let keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "borrar", "0", "listo"]
     private let columns = Array(repeating: GridItem(.fixed(96), spacing: 16), count: 3)
@@ -40,7 +39,7 @@ struct AdultGateView: View {
                         .accessibilityValue(input.isEmpty ? "vacía" : input)
 
                     if showRetry {
-                        Label("Esa no es. Prueba con esta otra pregunta.", systemImage: "arrow.clockwise")
+                        Label("Casi. Prueba con esta otra, con calma.", systemImage: "arrow.clockwise")
                             .font(.body.bold())
                             .foregroundStyle(Theme.primary)
                             .padding(.horizontal, 20)
@@ -68,7 +67,6 @@ struct AdultGateView: View {
                 }
             }
             .sensoryFeedback(.selection, trigger: input)
-            .sensoryFeedback(.warning, trigger: attempts)
         }
     }
 
@@ -119,7 +117,6 @@ struct AdultGateView: View {
         if gate.isCorrect(input) {
             onPass()
         } else {
-            attempts += 1
             input = ""
             withAnimation {
                 gate = AdultGate.random()

@@ -7,7 +7,8 @@ struct RoutineStepsView: View {
     @Environment(RoutineStore.self) private var routines
 
     var body: some View {
-        let nextIndex = progress.nextPendingIndex(in: routine) ?? 0
+        let pending = progress.nextPendingIndex(in: routine)
+        let nextIndex = pending ?? max(routine.steps.count - 1, 0)
 
         VStack(alignment: .leading, spacing: Theme.padding) {
             VStack(alignment: .leading, spacing: 12) {
@@ -33,7 +34,7 @@ struct RoutineStepsView: View {
                             StepCard(number: index + 1,
                                      step: step,
                                      isDone: progress.isCompleted(step),
-                                     isNext: index == nextIndex)
+                                     isNext: index == pending)
                         }
                         .buttonStyle(.plain)
                     }
@@ -53,7 +54,8 @@ struct RoutineStepsView: View {
                     .background(Theme.retry.opacity(0.4), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
             } else {
                 NavigationLink(value: Route.guide(routine, startIndex: nextIndex)) {
-                    Label(nextIndex == 0 ? "¡Empezar!" : "Seguir con el paso \(nextIndex + 1)",
+                    Label(pending == nil ? "¡Ya casi! Termina tu rutina"
+                          : nextIndex == 0 ? "¡Empezar!" : "Seguir con el paso \(nextIndex + 1)",
                           systemImage: "play.circle.fill")
                 }
                 .buttonStyle(.primary)

@@ -62,11 +62,12 @@ struct RoutineEditorView: View {
             }
 
             Section {
-                ForEach(routine.steps) { $step in
+                // Por valor y con binding por id: `ForEach($pasos)` puede cerrar la app al borrar un paso.
+                ForEach(Array(routine.wrappedValue.steps.enumerated()), id: \.element.id) { index, step in
                     NavigationLink {
-                        StepEditorView(step: $step)
+                        StepEditorView(step: stepBinding(step, in: routine))
                     } label: {
-                        stepRow(step, number: (routine.wrappedValue.steps.firstIndex(of: step) ?? 0) + 1)
+                        stepRow(step, number: index + 1)
                     }
                 }
                 .onMove { routine.wrappedValue.steps.move(fromOffsets: $0, toOffset: $1) }
@@ -108,6 +109,17 @@ struct RoutineEditorView: View {
                 }
             }
         }
+    }
+
+    /// Si el paso ya no existe (se borró), lee la última copia y no escribe nada.
+    private func stepBinding(_ step: RoutineStep, in routine: Binding<Routine>) -> Binding<RoutineStep> {
+        Binding(
+            get: { routine.wrappedValue.steps.first { $0.id == step.id } ?? step },
+            set: { newValue in
+                guard let index = routine.wrappedValue.steps.firstIndex(where: { $0.id == step.id }) else { return }
+                routine.wrappedValue.steps[index] = newValue
+            }
+        )
     }
 
     private func stepRow(_ step: RoutineStep, number: Int) -> some View {

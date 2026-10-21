@@ -82,7 +82,12 @@ enum Encouragement {
         "¡Lo estás logrando!",
         "¡Qué buen trabajo!",
         "¡Bien hecho!",
-        "¡Sigue así!"
+        "¡Sigue así!",
+        "¡Eres genial!",
+        "¡Qué bien lo hiciste!",
+        "¡Otro paso listo!",
+        "¡Me encanta cómo lo haces!",
+        "¡Tú puedes con todo!"
     ]
 
     static let routineDone = [
@@ -90,7 +95,18 @@ enum Encouragement {
         "¡Terminaste!",
         "¡Lo hiciste por tu cuenta!",
         "¡Qué gran trabajo!",
-        "¡Misión cumplida!"
+        "¡Misión cumplida!",
+        "¡Eres increíble!",
+        "¡Qué orgullo verte lograrlo!",
+        "¡Lo hiciste muy bien!"
+    ]
+
+    /// Cuando el temporizador llega a cero: calma, nunca prisa ni regaño.
+    static let takeYourTime = [
+        "¡Vas muy bien! Tómate tu tiempo. Cuando termines, presiona ¡Hecho!",
+        "Sin prisa, tú puedes. Cuando termines, presiona ¡Hecho!",
+        "Lo estás haciendo bien. Sigue a tu ritmo y presiona ¡Hecho! al terminar.",
+        "Cada quien tiene su ritmo. Cuando estés listo o lista, presiona ¡Hecho!"
     ]
 
     /// Elige una frase distinta de la última que se dijo.
